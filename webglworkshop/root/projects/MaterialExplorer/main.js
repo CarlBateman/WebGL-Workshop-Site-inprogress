@@ -21,6 +21,9 @@ function main() {
   mesh.type = "torus";
   scene.meshes.push(mesh);
 
+  console.log("initial");
+  console.log(scene);
+
   var controllers = [];
   controllers["Babylon.js"] = makeBabylonController(scene);
   //controllers["Babylon.js"].setScene(scene);
@@ -41,17 +44,4 @@ function main() {
     adapter.render();
   })();
 
-  function setupScene() {
-    for (var i = 0; i < scene.lights.length; i++) {
-      var id = adapter.add(scene.lights[i].type);
-      adapter.set(id, "position", scene.lights[i].position);
-    }
-
-    scene.meshes.forEach(function (mesh) {
-      var id = adapter.add(mesh.type);
-      adapter.set(id, "position", mesh.position);
-      adapter.set(id, "material.color", [1,1,1]);
-    });
-
-  }
 }

@@ -1,5 +1,5 @@
 ﻿/// <reference path="../../libs/three-r84/three.js" />
-
+/// <reference path="scene.js" />
 
 function makeThreeController(sceneGeneric) {
   var glCanvas;
@@ -50,14 +50,49 @@ function makeThreeController(sceneGeneric) {
     controls = new THREE.OrbitControls(camera, renderer.domElement);
 
     ambientLight = new THREE.AmbientLight(0x404040);
+    ambientLight.cb_tag = "ignore";
     scene.add(ambientLight);
   }
 
   function clearAll() {
+    while (scene.children.length > 0) {
+      scene.remove(scene.children[0]);
+    }
+    scene.add(ambientLight);
   }
 
   function getScene() {
-    var sceneGeneric;
+    var sceneGeneric = makeScene();
+
+    for (var i = 0; i < scene.children.length; i++) {
+      var item = scene.children[i];
+      var type = item.cb_tag;//item.type.toLowerCase();
+
+      if (type === "ignore") continue;
+
+      if (type.includes("light")) {
+        if (type.includes("ambient")) {
+          sceneGeneric.ambient = item.color.toArray();
+        } else {
+          var light = makeLight();
+          light.type = type.replace("light", "");
+          light.position = item.position;
+          light.direction = type === "spotlight" ? item.target.position : item.target.position;
+
+          sceneGeneric.lights.push(light);
+        }
+      } else if (type.includes("mesh")) {
+        var mesh = makeMesh();
+        var geometry = item.geometry;
+        mesh.type = item.cb_tag.replace("mesh", "");;//geometry.type.toLowerCase().replace("geometry", "").replace("buffer", "");
+        
+        var material = makeMaterial();
+
+        sceneGeneric.meshes.push(mesh);
+        //sceneGeneric.material.push(material);
+      }
+    } 
+
     return sceneGeneric;
   }
 
@@ -108,12 +143,18 @@ function makeThreeController(sceneGeneric) {
     if (type in geometryTypes) {
       var mesh = new THREE.Mesh(new geometryTypes[type](...geometryDefaults[type]), defaultMaterial);
       scene.add(mesh);
+
+      mesh.cb_tag = type + "mesh";
+
       return mesh.id;
     }
 
     if (type in lightTypes) {
       var light = new lightTypes[type](...lightDefaults[type]);
       scene.add(light);
+
+      light.cb_tag = type + "light";
+
       return light.id;
     }
   }
@@ -137,5 +178,14 @@ function makeThreeController(sceneGeneric) {
     setScene(sceneGeneric);
   glCanvas.style.display = "none";
 
-  return { setScene: setScene, updateScene: updateScene, render: render, add: add, display: display, set: set };
+  return {
+    clearAll: clearAll,
+    getScene: getScene,
+    setScene: setScene,
+    updateScene: updateScene,
+    render: render,
+    add: add,
+    display: display,
+    set: set
+  }
 }

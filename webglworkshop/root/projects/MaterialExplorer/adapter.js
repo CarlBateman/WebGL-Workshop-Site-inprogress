@@ -28,10 +28,13 @@
       }
     },
 
+    setScene: function (scene) { currentEngine.setScene(scene); },
+    getScene: function () { return currentEngine.getScene(); },
+    clearAll: function () { currentEngine.clearAll(); },
+
     add: function (type) { return currentEngine.add(type); },
     set: function (id, property, value) { currentEngine.set(id, property, value); },
     remove: function (id) { currentEngine.remove(id); },
     replace: function (id, type) { currentEngine.replace(id, type); },
-
   }
 }

@@ -1,4 +1,6 @@
-﻿var optionsController = {
+﻿/// <reference path="adapter.js" />
+
+var optionsController = {
   options: {
     Renderer : "Three.js",
   },
@@ -17,9 +19,11 @@
 
     this.gui.add(this.options, 'Renderer', ['Three.js', 'Babylon.js']).onFinishChange(function () {
       //self.setEngine(self.options.Renderer);
-      self.adapter.setEngine(self.options.Renderer);
+      var adapter = self.adapter;
+      var scene = adapter.getScene();
+      adapter.setEngine(self.options.Renderer);
+      adapter.clearAll();
+      adapter.setScene(scene);
     });
-
-
   },
 }

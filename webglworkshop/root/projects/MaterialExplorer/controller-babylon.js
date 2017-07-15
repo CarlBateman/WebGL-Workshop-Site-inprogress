@@ -1,5 +1,5 @@
 ﻿/// <reference path="../../libs/babylon/babylon.js" />
-/// <reference path="polyfills.js" />
+/// <reference path="scene.js" />
 
 function makeBabylonController(sceneGeneric) {
   var glCanvas;
@@ -52,10 +52,44 @@ function makeBabylonController(sceneGeneric) {
   }
 
   function clearAll() {
+    while (scene.meshes.length > 0) {
+      scene.meshes[0].dispose();
+    }
+    while (scene.lights.length > 0) {
+      scene.lights[0].dispose();
+    }
   }
 
   function getScene() {
-    var sceneGeneric;
+    var sceneGeneric = makeScene();
+    sceneGeneric.ambient = scene.ambientColor.asArray();
+
+    for (var i = 0; i < scene.lights.length; i++) {
+      var item = scene.lights[i];
+      var type = item.cb_tag;// scene.lights[0].__proto__.constructor.name.toLowerCase();// item.type.toLowerCase();
+
+      var light = makeLight();
+      light.type = type;//.replace("light", "");
+      light.position = item.position.asArray();
+      light.direction = type === "spotlight" ? item.direction.asArray() : item.direction.asArray();
+
+      sceneGeneric.lights.push(light);
+    }
+
+    for (var i = 0; i < scene.meshes.length; i++) {
+      var item = scene.meshes[i];
+      var type = item.cb_tag;
+
+      var mesh = makeMesh();
+      var geometry = item.geometry;
+      mesh.type = type;//geometry.type.toLowerCase().replace("mesh", "");
+
+      var material = makeMaterial();
+
+      sceneGeneric.meshes.push(mesh);
+      //sceneGeneric.material.push(material);
+    }
+
     return sceneGeneric;
   }
 
@@ -90,9 +124,6 @@ function makeBabylonController(sceneGeneric) {
   function render() {
     scene.render();
 
-    //console.log(camera.position);
-    //console.log(camera.getWorldMatrix());
-    //console.log(camera.cameraDirection);
     return camera.position;
   }
 
@@ -113,11 +144,15 @@ function makeBabylonController(sceneGeneric) {
       mesh.material = new BABYLON.StandardMaterial("texture1", scene);
       mesh.material.ambientColor = mesh.material.diffuseColor.clone();
 
+      mesh.cb_tag = type;
+
       return mesh.id;
     }
 
     if (type in lightTypes) {
       var light = new lightTypes[type](type + "light", ...lightDefaults[type], scene);
+
+      light.cb_tag = type;
 
       return light.id;
     }
@@ -150,5 +185,14 @@ function makeBabylonController(sceneGeneric) {
     setScene(sceneGeneric);
   glCanvas.style.display = "none";
 
-  return { setScene: setScene, updateScene: updateScene, render: render, add: add, display: display, set: set };
+  return {
+    clearAll: clearAll,
+    getScene: getScene,
+    setScene: setScene,
+    updateScene: updateScene,
+    render: render,
+    add: add,
+    display: display,
+    set: set
+  }
 }
