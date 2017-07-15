@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html>
+  
+<head>
+  <title>Base - ambient lighting</title>
+  <script type="text/javascript" src="glMatrix-0.9.5.min.js"></script>
+  <script type="text/javascript" src="webgl-utils.js"></script>
+  <script type="text/javascript" src="model3d.js"></script>
+  <script type="text/javascript" src="cubeGeometry.js"></script>
+  <script type="text/javascript" src="teapotGeometry.js"></script>
+  <script type="text/javascript" src="planeGeometry.js"></script>
+  <script type="text/javascript" src="icosahedronGeometry.js"></script>
+  
+  <script id="vertex" type="x-shader">
+    attribute vec3 aVertexPosition;
+    attribute vec4 aVertexColor;
+    attribute vec2 aTextureCoord;
+    
+    uniform mat4 uMVMatrix;
+    uniform mat4 uPMatrix;
+    uniform vec3 uAmbientColor;
+    
+    attribute vec3 aVertexNormal;
+    uniform mat3 uNMatrix;
+    uniform vec3 uLightingDirection;
+    uniform vec3 uDirectionalColor;
+    varying vec3 vLightWeighting;
+    
+    varying vec4 vColor;
+    
+    void main(void) {
+      gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+    
+      vec3 transformedNormal = normalize(uNMatrix * aVertexNormal);
+      float directionalLightWeighting = max(dot(transformedNormal, uLightingDirection), 0.0);
+      vLightWeighting = uAmbientColor + uDirectionalColor * directionalLightWeighting;
+      
+      vColor = aVertexColor;
+    }
+  </script>
+  <script id="fragment" type="x-shader">
+    precision highp float;
+    varying vec4 vColor;
+    varying vec3 vLightWeighting;
+
+    void main() {
+      gl_FragColor = vColor * vec4(vLightWeighting, 1.0);
+    }
+  </script>
+  
+  <script type="text/javascript">
+    var directionalLightColour = vec3.create([0.5, 0.5, 0.5]);
+    var ambientLightColour = vec3.create([0.5, 0.5, 0.5]);
+
+    var scene = new Scene();
+    var interactionTarget = null;
+
+    var shaderProgram;
+
+    var mvMatrixStack = [];
+    var mvMatrix = mat4.create();
+    var pMatrix = mat4.create();
+    function mvPushMatrix() {
+        var copy = mat4.create();
+        mat4.set(mvMatrix, copy);
+        mvMatrixStack.push(copy);
+    }
+
+    function mvPopMatrix() {
+        if (mvMatrixStack.length == 0) {
+            throw "Invalid popMatrix!";
+        }
+        mvMatrix = mvMatrixStack.pop();
+    }
+
+    var mouseDown = false;
+    var lastMouseX = null;
+    var lastMouseY = null;
+    var rvelX = 0;
+    var rvelY = 0;
+    var depth = -10.0;
+    
+    function degToRad(degrees) {
+      return degrees * Math.PI / 180;
+    }
+
+    function handleMouseDown(event) {
+      mouseDown = true;
+      lastMouseX = event.clientX;
+      lastMouseY = event.clientY;
+    }
+
+    function handleMouseUp(event) {
+      mouseDown = false;
+    }
+
+    function handleMouseMove(event) {
+      if (!mouseDown) {
+        return;
+      }
+      updateXY(event.clientX, event.clientY);
+    }
+
+    function handleMouseWheel(event) {
+      var event = window.event || event; // old IE support
+      var delta = Math.max(-1, Math.min(1, (event.wheelDelta || -event.detail)));
+      depth += delta;
+    }
+
+    function handleTouchMove(event) {
+      event.preventDefault();
+
+      if (!mouseDown) {
+        return;
+      }
+      updateXY(event.targetTouches[0].pageX, event.targetTouches[0].pageY);
+    }
+
+    function handleTouchDown(event) {
+      mouseDown = true;
+      lastMouseX = event.targetTouches[0].pageX;
+      lastMouseY = event.targetTouches[0].pageY;
+    }
+
+    function updateXY(newX, newY) {
+      var fudgefactor = 2;
+      var deltaX = newX - lastMouseX;
+      var deltaY = newY - lastMouseY;
+      lastMouseX = newX
+      lastMouseY = newY;
+
+      rvelX = deltaX / fudgefactor;
+      rvelY = deltaY / fudgefactor;
+      interactionTarget.rvelocity[0] = deltaX / fudgefactor;
+      interactionTarget.rvelocity[1] = deltaY / fudgefactor;
+    }
+
+    function initWebGL() {
+      var canvas = document.getElementById("mycanvas");
+      canvas.width  = window.innerWidth * 0.75;
+      
+      canvas.onmousedown = handleMouseDown;
+      document.onmousemove = handleMouseMove;
+      document.onmouseup = handleMouseUp;
+
+      if (canvas.addEventListener) {
+        canvas.addEventListener("mousewheel", handleMouseWheel, false);
+        canvas.addEventListener("DOMMouseScroll", handleMouseWheel, false);
+      }
+      else canvas.attachEvent("onmousewheel", handleMouseWheel);
+
+      canvas.addEventListener('touchstart', handleTouchDown, false);
+      canvas.addEventListener('touchmove', handleTouchMove, true);
+      canvas.addEventListener('touchend', handleMouseUp, false);
+
+      var names = ["webgl", "experimental-webgl", "webkit-3d", "moz-webgl"];
+      for (var i = 0; i < names.length; ++i) {
+        try {
+          gl = canvas.getContext(names[i]);
+        }
+        catch (e) {}
+        if (gl) break;
+      }
+
+      gl.viewportWidth = canvas.width;
+      gl.viewportHeight = canvas.height;
+    }
+
+    function initShaderProgram() {
+      var v = document.getElementById("vertex").firstChild.nodeValue;
+      var f = document.getElementById("fragment").firstChild.nodeValue;
+
+      var vs = gl.createShader(gl.VERTEX_SHADER);
+      gl.shaderSource(vs, v);
+      gl.compileShader(vs);
+
+      var fs = gl.createShader(gl.FRAGMENT_SHADER);
+      gl.shaderSource(fs, f);
+      gl.compileShader(fs);
+
+      shaderProgram = gl.createProgram();
+      gl.attachShader(shaderProgram, vs);
+      gl.attachShader(shaderProgram, fs);
+      gl.linkProgram(shaderProgram);
+
+      if (!gl.getShaderParameter(vs, gl.COMPILE_STATUS)) console.log(gl.getShaderInfoLog(vs));
+
+      if (!gl.getShaderParameter(fs, gl.COMPILE_STATUS)) console.log(gl.getShaderInfoLog(fs));
+
+      if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) console.log(gl.getProgramInfoLog(shaderProgram));
+
+      gl.useProgram(shaderProgram);
+
+      shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
+      shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
+
+      shaderProgram.ambientColorUniform = gl.getUniformLocation(shaderProgram, "uAmbientColor");
+
+      shaderProgram.vertexNormalAttribute = gl.getAttribLocation(shaderProgram, "aVertexNormal");
+      gl.enableVertexAttribArray(shaderProgram.vertexNormalAttribute);
+
+      shaderProgram.nMatrixUniform = gl.getUniformLocation(shaderProgram, "uNMatrix");
+      shaderProgram.lightingDirectionUniform = gl.getUniformLocation(shaderProgram, "uLightingDirection");
+      shaderProgram.directionalColorUniform = gl.getUniformLocation(shaderProgram, "uDirectionalColor");
+
+      shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
+      gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
+      
+      shaderProgram.vertexColorAttribute = gl.getAttribLocation(shaderProgram, "aVertexColor");
+      gl.enableVertexAttribArray(shaderProgram.vertexColorAttribute);
+
+      gl.enableVertexAttribArray(shaderProgram.textureCoordAttribute);
+    }
+    
+    function setNormals(geometry) {
+      //var norm = [];
+      for (var i = 0; i < geometry.indices.length; i++) {
+        var j = 3 * geometry.indices[i];
+        var v0 = geometry.vertexPositions.slice(j, j + 3);
+        j = 3 * geometry.indices[i + 1];
+        var v1 = geometry.vertexPositions.slice(j, j + 3);
+        j = 3 * geometry.indices[i + 2];
+        var v2 = geometry.vertexPositions.slice(j, j + 3);
+        var nx = (v1[1] - v0[1]) * (v2[2] - v0[2]) - (v2[1] - v0[1]) * (v1[2] - v0[2]);
+        var ny = -(v1[0] - v0[0]) * (v2[2] - v0[2]) + (v2[0] - v0[0]) * (v1[2] - v0[2]);
+        var nz = (v1[0] - v0[0]) * (v2[1] - v0[1]) - (v2[0] - v0[0]) * (v1[1] - v0[1]);
+        var n = Math.sqrt(nx * nx + ny * ny + nz * nz);
+        geometry.vertexNormals[i] = [nx / n, ny / n,nz / n];
+      }
+    }
+
+    function initScene() {
+      setNormals(icosahedronGeometry);
+      
+      var whiteCube = (JSON.parse(JSON.stringify(cubeGeometry)));
+      for (var i = 0; i<whiteCube.colors.length; i++) { whiteCube.colors[i] = 1.0; };
+      var model = initModel(whiteCube);
+      model.name = "cube1";
+      scene.models["cube1"] = model;
+      model.position = [1,0.01,0];
+
+      scene.models.push( initModel(cubeGeometry) );
+      scene.models[0].name = "cube2";
+      scene.models[0].position = [-1,0.01,0];
+      
+      model = initModel(icosahedronGeometry);
+      model.name = "light";
+      model.scale = [0.1,0.1,0.1];
+      mat4.translate(model.rotation, [3, 3, 3]);
+      scene.models["light"] = model;
+      
+      model = initModel(teapotGeometry);
+      model.name = "teapot";
+      model.scale = [0.1,0.1,0.1];
+      model.position = [2,0.29,2];
+      scene.models["teapot"] = model;
+
+      model = initModel(planeGeometry);
+      model.name = "plane";
+      model.scale = [5,5,1];
+      model.position = [0,-0.5,0];
+
+      var newRotationMatrix = mat4.create();
+      mat4.identity(newRotationMatrix);
+      mat4.rotate(newRotationMatrix, degToRad(90), [1, 0, 0]);
+      mat4.multiply(newRotationMatrix, model.rotation, model.rotation);
+
+      scene.models["plane"] = model;
+      
+      interactionTarget = scene;
+    }
+
+    function initModel(geometry) {
+      var vertexPositions = geometry.vertexPositions;
+      var vertexTextureCoords = geometry.vertexTextureCoords;
+      var indices = geometry.indices;
+      var colors = geometry.colors;
+      var normals = geometry.vertexNormals;
+
+      var vertexPositionBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexPositions), gl.STATIC_DRAW);
+      vertexPositionBuffer.itemSize = 3;
+      vertexPositionBuffer.numItems = vertexPositions.length / vertexPositionBuffer.itemSize;
+
+      var vertexColorBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, vertexColorBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+      vertexColorBuffer.itemSize = 4;
+      vertexColorBuffer.numItems = colors.length / vertexColorBuffer.itemSize;
+
+      var vertexNormalBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, vertexNormalBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
+      vertexNormalBuffer.itemSize = 3;
+      vertexNormalBuffer.numItems = normals.length / vertexNormalBuffer.itemSize;
+
+      var vertexIndexBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, vertexIndexBuffer);
+      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
+      vertexIndexBuffer.itemSize = 1;
+      vertexIndexBuffer.numItems = indices.length / vertexIndexBuffer.itemSize;
+
+      var model = new Model3d();
+      model.vertexPositionBuffer = vertexPositionBuffer;
+      model.vertexColorBuffer = vertexColorBuffer;
+      model.vertexNormalBuffer = vertexNormalBuffer;
+      model.vertexIndexBuffer = vertexIndexBuffer;
+      
+      return model;
+    }
+
+    function drawAll() {
+      gl.uniform3f(
+                shaderProgram.ambientColorUniform,
+                ambientLightColour[0],
+                ambientLightColour[1],
+                ambientLightColour[2]
+            );
+
+      mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
+      mat4.identity(mvMatrix);
+      mat4.translate(mvMatrix, [0.0, -1.0, depth]);
+      mat4.multiply(mvMatrix, scene.rotation);
+      
+      var lightingDirection = [
+          scene.models["light"].rotation[12],
+          scene.models["light"].rotation[13],
+          scene.models["light"].rotation[14]
+      ];
+      mat4.multiplyVec3(scene.rotation, lightingDirection, lightingDirection);
+      var adjustedLD = vec3.create();
+      vec3.normalize(lightingDirection, adjustedLD);
+      gl.uniform3fv(shaderProgram.lightingDirectionUniform, adjustedLD);
+
+      gl.uniform3f(
+          shaderProgram.directionalColorUniform,
+                directionalLightColour[0],
+                directionalLightColour[1],
+                directionalLightColour[2]
+      );
+
+
+      gl.clearColor(0, 0.5, 0, 1);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      gl.enable(gl.DEPTH_TEST);
+  
+      for (var key in scene.models) {
+        mvPushMatrix();
+        
+        model = scene.models[key];
+        
+        mat4.translate(mvMatrix, model.position);
+        mat4.multiply(mvMatrix, model.rotation);
+        mat4.scale(mvMatrix, model.scale);
+        
+        gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
+        gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
+  
+        gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexPositionBuffer);
+        gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, model.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+  
+        gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexColorBuffer);
+        gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, model.vertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+  
+        var normalMatrix = mat3.create();
+        mat4.toInverseMat3(mvMatrix, normalMatrix);
+        mat3.transpose(normalMatrix);
+        gl.uniformMatrix3fv(shaderProgram.nMatrixUniform, false, normalMatrix);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexNormalBuffer);
+        gl.vertexAttribPointer(shaderProgram.vertexNormalBuffer, model.vertexNormalBuffer.itemSize, gl.FLOAT, false, 0, 0);
+  
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.vertexIndexBuffer);
+  
+        gl.drawElements(gl.TRIANGLES, model.vertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+        //gl.drawElements(gl.LINE_LOOP, model.vertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+        
+        mvPopMatrix();
+      }
+    }
+
+    function animate() {
+      var newRotationMatrix = mat4.create();
+
+      for (var key in scene.models) {
+        model = scene.models[key];
+
+        mat4.identity(newRotationMatrix);
+        mat4.rotate(newRotationMatrix, degToRad(model.rvelocity[0]), [0, 1, 0]);
+        mat4.rotate(newRotationMatrix, degToRad(model.rvelocity[1]), [1, 0, 0]);
+        mat4.multiply(newRotationMatrix, model.rotation, model.rotation);
+
+        model.rvelocity[0] /= 1.08;
+        if (Math.abs(model.rvelocity[0]) < 0.001) model.rvelocity[0] = 0;
+        model.rvelocity[1] /= 1.08;
+        if (Math.abs(model.rvelocity[1]) < 0.001) model.rvelocity[1] = 0;
+      }
+      
+      mat4.identity(newRotationMatrix);
+      mat4.rotate(newRotationMatrix, degToRad(scene.rvelocity[0]), [0, 1, 0]);
+      mat4.rotate(newRotationMatrix, degToRad(scene.rvelocity[1]), [1, 0, 0]);
+      mat4.multiply(newRotationMatrix, scene.rotation, scene.rotation);
+      
+      scene.rvelocity[0] /= 1.08;
+      if (Math.abs(scene.rvelocity[0]) < 0.001) scene.rvelocity[0] = 0;
+      scene.rvelocity[1] /= 1.08;
+      if (Math.abs(scene.rvelocity[1]) < 0.001) scene.rvelocity[1] = 0;
+    }
+
+    function tick() {
+      requestAnimFrame(tick);
+      animate();
+      drawAll();
+    }
+    
+    function handleRadioButton(target) {
+      if(target == 'Model')
+        interactionTarget = scene.models[Object.keys(scene.models)[0]];
+      if(target == 'Scene')
+        interactionTarget = scene;
+      if(target == 'Light')
+        interactionTarget = scene.models["light"];
+    }
+    
+    function init() {
+      initWebGL();
+      initShaderProgram();
+      initScene();
+
+      tick();
+    }
+  </script>
+</head>
+
+<body onload="init()">
+  <table>
+  <tr><td>
+  <canvas id="mycanvas" width="500" height="500"></canvas>
+  </td><td valign="top">
+  <form>
+  Control options</br>
+    <!--input type="radio" name="model" value="Model" onclick="handleRadioButton('Model')" >Model<br-->
+    <input type="radio" name="model" value="Light" onclick="handleRadioButton('Light')">Light<br>
+    <input type="radio" name="model" value="Scene" onclick="handleRadioButton('Scene')" checked>Scene</br></br>
+    Ambient light colour:</br>
+    Red: 0<input oninput="ambientLightColour[0]=ambientRed.value/255" type="range" value="255/2" name="ambientRed" min="0" max="255">255</br>
+    Green: 0<input oninput="ambientLightColour[1]=ambientGreen.value/255" type="range" value="255/2" name="ambientGreen" min="0" max="255">255</br>
+    Blue: 0<input oninput="ambientLightColour[2]=ambientBlue.value/255" type="range" value="255/2" name="ambientBlue" min="0" max="255">255</br></br>
+    Directional light colour:</br>
+    Red: 0<input oninput="directionalLightColour[0]=directionalRed.value/255" type="range" value="255/2" name="directionalRed" min="0" max="255">255</br>
+    Green: 0<input oninput="directionalLightColour[1]=directionalGreen.value/255" type="range" value="255/2" name="directionalGreen" min="0" max="255">255</br>
+    Blue: 0<input oninput="directionalLightColour[2]=directionalBlue.value/255" type="range" value="255/2" name="directionalBlue" min="0" max="255">255</br>
+  </form>
+  </tr>
+  </table>
+</body>
+
+</html>

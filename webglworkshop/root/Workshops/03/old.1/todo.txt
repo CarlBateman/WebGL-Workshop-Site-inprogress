@@ -1,0 +1,21 @@
+Light and shadow
+
+base
+Light types
+none
+ambient
+directional
+point
+spot
+
+
+normals
+
+
+Three.js
+
+
+worksheet to pdf
+upload
+finish slides
+print reference
