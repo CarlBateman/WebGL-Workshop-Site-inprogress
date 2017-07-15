@@ -1,0 +1,120 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>GLSL make cube wave</title>
+
+  <script src="three.js"></script>
+  <script src="OrbitControls.js"></script>
+
+  <script id="vertexShader" type="x-shader/x-vertex">
+    varying vec2 vUv;
+    uniform float uRadius;
+    vec3 tPosition;
+
+    void main() {
+      vUv = uv;
+      tPosition = position;
+      tPosition.x += cos(uRadius + tPosition.y);
+      gl_Position = projectionMatrix * modelViewMatrix * vec4( tPosition, 1.0 );
+    }
+  </script>
+
+  <script id="fragmentShader" type="x-shader/x-fragment">
+    varying vec2 vUv;
+    uniform vec4 uColour;
+
+    void main() {
+      gl_FragColor = uColour;
+    }
+  </script>
+
+  <script>
+    window.addEventListener ?
+    window.addEventListener("load", init, false) :
+    window.attachEvent && window.attachEvent("onload", init);
+
+    function init() {
+      var container;
+      var renderer;
+      var camera;
+
+      var scene = new THREE.Scene();
+      var clock = new THREE.Clock();
+      var orbitControl;
+
+      container = document.getElementById("renderTarget");
+      renderer = createRenderer(container);
+      camera = createCamera(container);
+      var shape = addShape(scene);
+
+      orbitControl = new THREE.OrbitControls(camera, renderer.domElement);
+      orbitControl.object.position.z *= 1.25;
+
+      window.addEventListener('resize', function (event) {
+        var w = container.clientWidth;
+        var h = container.clientHeight;
+        renderer.setSize(w, h);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+      });
+
+      var radius = 0, min = 10, off = 5;
+      var render = function () {
+        var delta = clock.getDelta();
+        orbitControl.update(delta);
+
+        radius += (delta / 5);
+        radius %= 10;
+        material.uniforms.uRadius.value = radius * 5;
+
+        renderer.render(scene, camera);
+        requestAnimationFrame(render);
+      };
+
+      render();
+    }
+
+    function addShape(scene) {
+      var geometry = new THREE.BoxGeometry(15, 15, 15, 10, 30, 10);
+      var material = createMaterial();
+      material.wireframe = true;
+      var shape = new THREE.Mesh(geometry, material);
+      scene.add(shape);
+      return material;
+    }
+
+    function createMaterial() {
+      var shaderMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+          uColour: { type: "v4", value: new THREE.Vector4(1, 0, 0, 1) },
+          uRadius: { type: "f", value: 11 },
+        },
+        //attributes: {},
+        vertexShader: document.getElementById('vertexShader').textContent,
+        fragmentShader: document.getElementById('fragmentShader').textContent
+      });
+
+      return shaderMaterial;
+    }
+
+    function createCamera(container) {
+      var w = container.clientWidth;
+      var h = container.clientHeight;
+      var camera = new THREE.PerspectiveCamera(75, w / h, 0.1, 1000);
+      camera.position.z = 30;
+      return camera;
+    }
+
+    function createRenderer(container) {
+      var renderer = new THREE.WebGLRenderer({ alpha: true });
+      renderer.setPixelRatio(window.devicePixelRatio);
+      container.appendChild(renderer.domElement);
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      return renderer;
+    }
+  </script>
+</head>
+<body>
+  <div style="position: absolute; width: 98%; height: 98%;" id="renderTarget"></div>
+</body>
+</html>

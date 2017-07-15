@@ -1,0 +1,135 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>GLSL change cube to sphere</title>
+  <link href='https://fonts.googleapis.com/css?family=Merriweather:400,400italic,700,700italic' rel='stylesheet' type='text/css'>
+  <link href="StyleSheet.css" rel="stylesheet" />
+
+  <script src="three.js"></script>
+  <script src="OrbitControls.js"></script>
+
+  <script id="vertexShader" type="x-shader/x-vertex">
+    varying vec2 vUv;
+
+    void main() {
+      vUv = uv;
+      vec3 t = normalize(position);
+      t *= 15.0;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4( t, 1.0 );
+    }
+  </script>
+
+  <script id="fragmentShader" type="x-shader/x-fragment">
+    varying vec2 vUv;
+    uniform vec4 uColour;
+
+    void main() {
+      gl_FragColor = uColour;
+    }
+  </script>
+
+  <script>
+    window.addEventListener ?
+    window.addEventListener("load", init, false) :
+    window.attachEvent && window.attachEvent("onload", init);
+
+    function init() {
+      var container;
+      var renderer;
+      var camera;
+
+      var scene = new THREE.Scene();
+      var clock = new THREE.Clock();
+      var orbitControl;
+
+      container = document.getElementById("renderTarget");
+      renderer = createRenderer(container);
+      camera = createCamera(container);
+      var shape = addShape(scene);
+
+      orbitControl = new THREE.OrbitControls(camera, renderer.domElement);
+      orbitControl.object.position.z *= 1.25;
+
+      window.addEventListener('resize', function (event) {
+        var w = container.clientWidth;
+        var h = container.clientHeight;
+        renderer.setSize(w, h);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+      });
+
+      var render = function () {
+        orbitControl.update(clock.getDelta());
+        requestAnimationFrame(render);
+        renderer.render(scene, camera);
+        copyOutput();
+      };
+
+      render();
+    }
+
+    function copyOutput() {
+      //grab the context from your destination canvas
+      var destCtx = document.getElementById("copy").getContext('2d');
+
+      //call its drawImage() function passing it the source canvas directly
+      var srcCtx = document.getElementById("renderTarget");
+      var canvas = srcCtx.firstElementChild;
+      destCtx.canvas.height = canvas.height;
+      destCtx.canvas.width = canvas.width;
+      destCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height);
+    }
+
+    function addShape(scene) {
+      //var geometry = new THREE.CylinderGeometry(5, 5, 30, 32, 10, true);
+      var geometry = new THREE.BoxGeometry(15, 15, 15, 10, 10, 10);
+      var material = createMaterial();
+      material.wireframe = true;
+      var shape = new THREE.Mesh(geometry, material);
+      scene.add(shape);
+    }
+
+    function createMaterial() {
+      var shaderMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+          uColour: { type: "v4", value: new THREE.Vector4(1, 0, 0, 1) },
+        },
+        //attributes: {},
+        vertexShader: document.getElementById('vertexShader').textContent,
+        fragmentShader: document.getElementById('fragmentShader').textContent
+      });
+
+      return shaderMaterial;
+    }
+
+    function createCamera(container) {
+      var w = container.clientWidth;
+      var h = container.clientHeight;
+      var camera = new THREE.PerspectiveCamera(75, w / h, 0.1, 1000);
+      camera.position.z = 30;
+      return camera;
+    }
+
+    function createRenderer(container) {
+      var renderer = new THREE.WebGLRenderer({ alpha: true });
+      renderer.setPixelRatio(window.devicePixelRatio);
+      container.appendChild(renderer.domElement);
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      return renderer;
+    }
+  </script>
+</head>
+<body>
+  <div id="content">
+    <div id="container">
+      <div id="renderTarget">
+      </div>
+    </div>
+    <h2>Vertex shader</h2>
+    <p>Here, we turn a cube into a sphere by projecting each vertex onto the surface of a sphere (lines 17 - 19).</p>
+    <p>This will work with any shape, but... well, try it for yourself</p>
+    <p>Also, try reducing the number of segments that make up the shape.</p>
+  </div>
+  <canvas id="copy"></canvas>
+</body>
+</html>
