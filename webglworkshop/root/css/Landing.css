@@ -1,0 +1,161 @@
+﻿@font-face {
+  font-family: 'AidaBook';
+  src: url("../fonts/AidaBook.eot");
+  src: url("../fonts/AidaBook.eot?#iefix") format("embedded-opentype"),
+       url("../fonts/AidaBook.woff2") format("woff2"),
+       url("../fonts/AidaBook.woff") format("woff"),
+       url("../fonts/AidaBook.svg") format("svg"),
+       url("../fonts/AidaBook.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: '20thCentury';
+  src: url("../fonts/20th Century Font V1.eot");
+  src: url("../fonts/20th Century Font V1.eot?#iefix") format("embedded-opentype"),
+       url("../fonts/20th Century Font V1.woff2") format("woff2"),
+       url("../fonts/20th Century Font V1.woff") format("woff"),
+       url("../fonts/20th Century Font V1.svg") format("svg"),
+       url("../fonts/20th Century Font V1.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+.grad {
+  background: white; /* For browsers that do not support gradients */
+  /* For Safari 5.1 to 6.0 */
+  background: -webkit-linear-gradient(left,white,#668, #004);
+  /* For Opera 11.1 to 14.0 */                         
+  background:      -o-linear-gradient(left,white,#668, #004);
+  /* For Fx 3.6 to 15 */                               
+  background:    -moz-linear-gradient(left,white,#668, #004);
+  /* Standard syntax */                                
+  background:    linear-gradient(to right, white,#668, #004);
+}
+
+hr.style-two {
+    border: 0;
+    height: 1px;
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0));
+}
+
+body { margin:0;padding:0; font-family: 'Open Sans', sans-serif; font-size: 0.9em;}
+div.clear { clear:both; }
+/*div { border-style: solid; border-width : 1px;}*/
+#main_container {margin: auto;min-height:50%; width:100%; ;}
+
+#carousel_holder {margin: auto; height:30vh;width:100%;}/* background-color:#ff00dc;}*/
+/*canvas{background-color:#ffd800;height:30vh;width:100%;}*/
+
+.summary {
+background: #dde4e9;
+padding: 12px 12px 1px 12px;
+margin: 12px;
+}
+
+div.logo1 {
+   position:absolute;
+   top:0;
+   left:0;
+   font-family:"20thCentury";
+  font-size:4em;
+  color: #448;
+    text-shadow:2px 0 30px white, 0 -2px 30px white, -2px -0 30px white, 2px 0 30px white;
+
+  /*text-shadow: 2px 2px 3px white,  -2px -2px 3px black, black;*/
+}
+
+div.logoaa{
+  font-size:4em;
+  color: transparent;
+  background-clip:text;
+  /*text-shadow:2px 2px 2px black, black, -2px -2px 2px white;*/
+  text-shadow:2px 2px 2px white;
+   position:absolute;
+   top:0;
+   left:0;
+}
+
+
+div.logo {
+  font-size:4em;
+    position:absolute;
+    top:0;
+    left:0;
+    /*background-image: url(http://i.imgur.com/EWDVnfb.png);*/
+}
+div.shadow {
+    color: #fff;
+    text-shadow: 0 0 .5em #F00;
+}
+div.text {
+  -webkit-text-fill-color: transparent;
+  -webkit-background-clip: text;
+}
+
+#content_holder {margin: auto; width:80%; ;}
+#root-navigation_holder { text-align: center; }
+
+/*@media screen and (-webkit-min-device-pixel-ratio:0) {
+  @font-face {
+    font-family: ‘AidaBook’;
+    src: url("Oregon_LDO_Book.svg") format("svg");
+  }}*/
+
+/*h1, h2, h3 {-webkit-text-stroke: 0.5px; font-family:"AidaBook"}*/
+h1, h2, h3 { margin-bottom: 0; margin-top: 0; font-weight: normal; font-style: normal; color: #448; font-family:"AidaBook",Georgia,serif}
+/*h1 { font-family: "AidaBook";font-size:2rem;  }*/
+p {margin-top: 0;}
+ /**********************************************/
+.root-navigation {
+  display:inline-block;
+	/*width:100%;*/
+}
+.root-navigation ul {
+  list-style: none;
+	color: #448;
+  /*background-color: #fff;*/
+  padding: 0;
+  padding-bottom: 20px;
+  margin: 0;
+	width:100%;
+}
+.root-navigation li {
+	font-family: "AidaBook", Verdana, Geneva, Tahoma, sans-serif;
+  line-height: 40px;
+  height: 40px;
+  border-bottom: 1px solid #888;
+  float: left;
+}
+ 
+.root-navigation a {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+	color: #448;
+  background-color: #fff;
+  transition: .3s background-color;
+  padding: 0px 10px 0px 10px;
+}
+ 
+.root-navigation a:hover {
+  color: #eef;
+	background-color: #44c;
+}
+ 
+/*.root-navigation a.active {
+  background-color: #fff;
+  color: #888;
+  cursor: default;
+}*/
+ 
+@media screen and (min-width: 45em) {
+  .root-navigation li {
+    float: left;
+    border-bottom: none;
+    height: 50px;
+    line-height: 50px;
+    font-size: 1.4em;
+  }
+}
