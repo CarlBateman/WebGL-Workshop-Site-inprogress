@@ -1,0 +1,114 @@
+    function animate() {
+      var newRotationMatrix = mat4.create();
+
+      for (var key in scene.models) {
+        model = scene.models[key];
+
+        mat4.identity(newRotationMatrix);
+        mat4.rotateY(newRotationMatrix, newRotationMatrix, degToRad(model.rvelocity[0]));
+        mat4.rotateX(newRotationMatrix, newRotationMatrix, degToRad(model.rvelocity[1]));
+        mat4.multiply(model.transform, newRotationMatrix, model.transform);
+
+        model.rvelocity[0] /= 1.08;
+        if (Math.abs(model.rvelocity[0]) < 0.001) model.rvelocity[0] = 0;
+        model.rvelocity[1] /= 1.08;
+        if (Math.abs(model.rvelocity[1]) < 0.001) model.rvelocity[1] = 0;
+      }
+
+      mat4.identity(newRotationMatrix);
+      mat4.rotateY(newRotationMatrix, newRotationMatrix, degToRad(scene.rvelocity[0]));
+      mat4.rotateX(newRotationMatrix, newRotationMatrix, degToRad(scene.rvelocity[1]));
+      mat4.multiply(scene.transform, newRotationMatrix, scene.transform);
+
+      // determine gloabl position of billboard 
+      // viewer (not really a camera) is at 0,0,0 whole scene is moved relative it... I hope
+
+      // apply the scene transform then the model transform to an identity matrix
+
+      
+      var m = mat4.create();
+      //mat4.identity(mvMatrix);
+      var t = vec3.fromValues(0.0, 1.0, Pointer.Z - 15);
+      //console.log(t);
+      //mat4.translate(mvMatrix, mvMatrix, t);
+      mat4.multiply(m, m, scene.transform);
+      mat4.translate(m, m, t);
+      //console.log(m);
+      //mat4.multiply(mvMatrix, mvMatrix, scene.transform);
+      //console.log(m);
+      //console.log(scene.transform);
+      // could just do translation don't care about its rotation we're about to overwrite it....
+      mat4.multiply(m, m, scene.models["billboard"].transform);
+      //console.log(scene.models["billboard"].transform);
+      //console.log(m);
+
+      // m is now at world co-ords for billboard i.e. eye
+      var m1 = scene.models["billboard"].transform;
+      var t1 = vec3.fromValues(m1[12], m1[13], m1[14]);
+      var eye = vec3.fromValues(m[12], m[13], m[14]);
+      var center = vec3.create();
+      var up = vec3.fromValues(0, 1, 0);
+      mat4.lookAt(scene.models["billboard"].transform, eye, center, up);
+
+      // invert rotation matrix part of transform
+      var m2 = mat4.create();// = scene.models["billboard"].transform;
+      mat4.copy(m2, scene.models["billboard"].transform);
+      m1[1] = m2[4];
+      m1[2] = m2[8];
+      m1[4] = m2[1];
+      m1[6] = m2[9];
+      m1[8] = m2[2];
+      m1[9] = m2[6];
+
+
+      //var m33 = mat3.fromMat4(scene.models["billboard"].transform);
+      //mat4.invert(m33, m33);
+      //for (var i = 0; i < m33.length; i++) {
+      //  scene.models["billboard"].transform
+      //}
+
+      //mat4.invert(scene.models["billboard"].transform, scene.models["billboard"].transform);
+      scene.models["billboard"].transform[12] = t1[0];
+      scene.models["billboard"].transform[13] = t1[1];
+      scene.models["billboard"].transform[14] = t1[2];
+      //console.log(scene.models["billboard"].transform);
+      //console.log(scene.models["teapot"].transform);
+      //console.log(t1);
+
+      //var model = scene.models[key];
+
+      //mat4.multiply(mvMatrix, mvMatrix, model.transform);
+      //mat4.scale(mvMatrix, mvMatrix, model.scale);
+      /*
+      var b = scene.models["billboard"].transform;
+      var e = scene.transform;
+
+      var eye = vec3.fromValues(b[12], b[13], b[14]);
+      vec3.transformMat4(eye, eye, b);
+      var center = vec3.fromValues(e[12], e[13], e[14]);
+      vec3.transformMat4(center, center, e);
+      var up = vec3.fromValues(0, 1, 0);
+      mat4.lookAt(scene.models["billboard"].transform, eye,center,  up);
+      */
+      //mvPopMatrix();
+      //console.log(eye);
+      //console.log(center);
+
+      //console.log(e[12], e[13], e[14]);
+      //console.log(b[12], b[13], b[14]);
+      //var t1 = vec3.fromValues(t[12], t[13], t[14]);
+      //var center = vec3.create(); //vec3.fromValues(t[12], t[13], t[14]);
+      ////vec3.set center[0] = t[13];
+      ////center.[2] = ;
+      //var eye = vec3.create();
+      //var up = vec3.create();
+      ////m.loo
+      ////mat4.lookAt();
+      ////scene.models["billboard"].transform.
+
+      for (var i = 0; i < scene.rvelocity.length-1; i++) {
+        scene.rvelocity[i] /= 1.08;
+        if (Math.abs(scene.rvelocity[i]) < 0.001)
+          scene.rvelocity[i] = 0;
+      }
+    }

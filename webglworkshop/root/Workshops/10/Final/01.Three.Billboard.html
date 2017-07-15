@@ -1,0 +1,167 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title></title>
+  <script type="text/javascript" src="three.min.js"></script>
+  <script type="text/javascript" src="OrbitControls.js"></script>
+  <script type="text/javascript" src="TeapotGeometry.js"></script>
+
+  <script type="text/javascript">
+    var scene;
+    var camera;
+    var renderer;
+
+    function initScene() {
+      var geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+      var material = new THREE.MeshLambertMaterial({ color: 0xffff00, ambient: 0xffff00 });
+      var cube = new THREE.Mesh(geometry, material);
+      cube.position.set(0, 0.01, 0);
+      scene.add(cube);
+
+      geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+      var cubeMaterials = [];
+      cubeMaterials.push(new THREE.MeshLambertMaterial({ color: 0xff3333, ambient: 0xff3333 }));
+      cubeMaterials.push(new THREE.MeshLambertMaterial({ color: 0xff8800, ambient: 0xff8800 }));
+      cubeMaterials.push(new THREE.MeshLambertMaterial({ color: 0xffff33, ambient: 0xffff33 }));
+      cubeMaterials.push(new THREE.MeshLambertMaterial({ color: 0x33ff33, ambient: 0x33ff33 }));
+      cubeMaterials.push(new THREE.MeshLambertMaterial({ color: 0x3333ff, ambient: 0x3333ff }));
+      cubeMaterials.push(new THREE.MeshLambertMaterial({ color: 0x8833ff, ambient: 0x8833ff }));
+      var cubeMaterial = new THREE.MeshFaceMaterial(cubeMaterials);
+
+      var cube1 = new THREE.Mesh(geometry, cubeMaterial);
+      cube1.position.set(-1, 0.01, 1);
+      scene.add(cube1);
+
+      material = new THREE.MeshPhongMaterial({ color: 0x0000ff, ambient: 0x0000ff, specular: 0xffff00 });
+      geometry = new THREE.TeapotGeometry(0.3, 6, true, true, true, true, true);
+      var teapot = new THREE.Mesh(geometry, material);
+      teapot.position.set(1, 0.05, -1);
+      scene.add(teapot);
+
+      geometry = new THREE.PlaneGeometry(1, 1);
+      material = new THREE.MeshLambertMaterial({ color: 0xffffcd, side: THREE.DoubleSide });
+      var plane = new THREE.Mesh(geometry, material);
+      plane.rotation.x = Math.PI / 2;
+      plane.scale.set(5, 5, 1);
+      plane.position.set(0, -0.25, 0);
+      scene.add(plane);
+
+      // lights
+      var directionalLight = new THREE.DirectionalLight(0x888888, 1.0);
+      directionalLight.position.set(1, 1, 0);
+      scene.add(directionalLight);
+
+      var ambientLight = new THREE.AmbientLight(0x888888);
+      scene.add(ambientLight);
+
+      var spritey = makeTextSprite("A cube",
+        { fontsize: 24, borderColor: { r: 255, g: 0, b: 0, a: 1.0 }, backgroundColor: { r: 255, g: 100, b: 100, a: 0.8 } });
+      spritey.position.set(cube.position.x + 0.3, cube.position.y + 0.2, cube.position.z);
+      scene.add(spritey);
+
+      var spritey = makeTextSprite("I'm a teapot",
+        { fontsize: 32, fontface: "Georgia", borderColor: { r: 0, g: 0, b: 255, a: 1.0 } });
+      spritey.position.set(teapot.position.x+0.2, teapot.position.y + 0.2, teapot.position.z);
+      scene.add(spritey);
+    }
+
+    function makeTextSprite(message, parameters) {
+      if (parameters === undefined) parameters = {};
+
+      var fontface = parameters.hasOwnProperty("fontface") ?
+        parameters["fontface"] : "Arial";
+
+      var fontsize = parameters.hasOwnProperty("fontsize") ?
+        parameters["fontsize"] : 18;
+
+      var borderThickness = parameters.hasOwnProperty("borderThickness") ?
+        parameters["borderThickness"] : 4;
+
+      var borderColor = parameters.hasOwnProperty("borderColor") ?
+        parameters["borderColor"] : { r: 0, g: 0, b: 0, a: 1.0 };
+
+      var backgroundColor = parameters.hasOwnProperty("backgroundColor") ?
+        parameters["backgroundColor"] : { r: 255, g: 255, b: 255, a: 1.0 };
+
+      var canvas = document.createElement('canvas');
+      var context = canvas.getContext('2d');
+      context.font = "Bold " + fontsize + "px " + fontface;
+
+      // get size data (height depends only on font size)
+      var metrics = context.measureText(message);
+      var textWidth = metrics.width;
+
+      // background color
+      context.fillStyle = "rgba(" + backgroundColor.r + "," + backgroundColor.g + ","
+                      + backgroundColor.b + "," + backgroundColor.a + ")";
+      // border color
+      context.strokeStyle = "rgba(" + borderColor.r + "," + borderColor.g + ","
+                      + borderColor.b + "," + borderColor.a + ")";
+
+      context.lineWidth = borderThickness;
+      roundRect(context, borderThickness / 2, borderThickness / 2, textWidth + borderThickness, fontsize * 1.4 + borderThickness, 6);
+      // 1.4 is extra height factor for text below baseline: g,j,p,q.
+
+      // text color
+      context.fillStyle = "rgba(0, 0, 0, 1.0)";
+
+      context.fillText(message, borderThickness, fontsize + borderThickness);
+
+      // canvas contents will be used for a texture
+      var texture = new THREE.Texture(canvas);
+      texture.needsUpdate = true;
+
+
+      var spriteMaterial = new THREE.SpriteMaterial(
+        //{ map: texture, useScreenCoordinates: false, alignment: spriteAlignment });
+        { map: texture, useScreenCoordinates: false });
+      var sprite = new THREE.Sprite(spriteMaterial);
+      //sprite.scale.set(10.0, 5.0, 1.0);
+      return sprite;
+    }
+
+    // function for drawing rounded rectangles
+    function roundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
+
+
+    function init() {
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+      scene.add(camera);
+      camera.lookAt(scene.position);
+      renderer = new THREE.WebGLRenderer();
+      renderer.setSize(window.innerWidth * 0.75, window.innerHeight * 0.75);
+      renderer.setClearColor(0x008800, 1);
+      document.body.appendChild(renderer.domElement);
+      camera.position.z = 4.5;
+      camera.position.y = 0.5;
+
+      initScene();
+
+      var controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+      (function render() {
+        requestAnimationFrame(render);
+        renderer.render(scene, camera);
+        controls.update();
+      })();
+    }
+  </script>
+</head>
+<body onload="init()">
+</body>
+</html>

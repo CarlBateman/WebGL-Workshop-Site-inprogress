@@ -1,0 +1,300 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+  <title>Point lighting with specular highlight</title>
+  <script type="text/javascript" src="gl-matrix-min.js"></script>
+  <script type="text/javascript" src="webgl-utils.js"></script>
+
+  <script type="text/javascript" src="cube.js"></script>
+  <script type="text/javascript" src="icosahedron.js"></script>
+  <script type="text/javascript" src="plane.js"></script>
+  <script type="text/javascript" src="teapot.js"></script>
+  <script type="text/javascript" src="model3d.js"></script>
+  <script type="text/javascript" src="Pointer.js"></script>
+  <script type="text/javascript" src="utils.js"></script>
+
+  <script id="vertex"type="x-shader">
+    attribute vec3 aVertexPosition;
+    attribute vec4 aVertexColor;
+    attribute vec2 aTextureCoord;
+    varying vec2 vTextureCoord;
+
+    uniform mat4 uMVMatrix;
+    uniform mat4 uPMatrix;
+
+    attribute vec3 aVertexNormal;
+    uniform mat3 uNMatrix;
+    varying vec3 vTransformedNormal;
+
+    varying vec4 vColor;
+
+    varying vec4 vPosition;
+
+    void main(void) {
+      vPosition = uMVMatrix * vec4(aVertexPosition, 1.0);
+      gl_Position = uPMatrix * vPosition;
+
+      vTransformedNormal = normalize(uNMatrix * aVertexNormal);
+
+      vColor = aVertexColor;
+      vTextureCoord = aTextureCoord;
+    }
+  </script>
+
+  <script id="fragment" type="x-shader">
+    precision highp float;
+    varying vec4 vColor;
+    varying vec3 vTransformedNormal;
+    uniform vec3 uLightingDirection;
+    uniform vec3 uDirectionalColor;
+    uniform vec3 uAmbientColor;
+
+    varying vec4 vPosition;
+    uniform float uMaterialShininess;
+    uniform vec3 uPointLightingLocation;
+    uniform vec3 uPointLightingSpecularColor;
+    uniform vec3 uPointLightingDiffuseColor;
+
+    void main() {
+      vec3 normal = normalize(vTransformedNormal);
+
+      float directionalLightWeighting = max(dot(normal, uLightingDirection), 0.0);
+      vec3 lightDirection = normalize(uPointLightingLocation - vPosition.xyz);
+      vec3 eyeDirection = normalize(-vPosition.xyz);
+      vec3 reflectionDirection = reflect(-lightDirection, normal);
+      
+      float specularLightWeighting=0.0;
+      if(directionalLightWeighting > 0.0) {
+        specularLightWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), uMaterialShininess);
+      }
+      vec3 vLightWeighting = uAmbientColor + uDirectionalColor * directionalLightWeighting + uPointLightingSpecularColor * specularLightWeighting;
+      vec4 color = vColor * vec4(vLightWeighting, 1.0);
+      
+      gl_FragColor = color;
+    }
+  </script>
+
+  <script type="text/javascript">
+    var gl;
+    var shaderProgram;
+    var ctx;
+
+    var directionalLightColour = vec3.fromValues(0.5, 0.5, 0.5);
+    var ambientLightColour = vec3.fromValues(0.5, 0.5, 0.5);
+
+    var scene = new Scene();
+
+    var mvMatrixStack = [];
+    var mvMatrix = mat4.create();
+    var pMatrix = mat4.create();
+
+    function getVariableLocations() {
+      shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
+      gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
+
+      shaderProgram.vertexColorAttribute = gl.getAttribLocation(shaderProgram, "aVertexColor");
+      gl.enableVertexAttribArray(shaderProgram.vertexColorAttribute);
+
+      shaderProgram.vertexNormalAttribute = gl.getAttribLocation(shaderProgram, "aVertexNormal");
+      gl.enableVertexAttribArray(shaderProgram.vertexNormalAttribute);
+
+      shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
+      shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
+      shaderProgram.nMatrixUniform = gl.getUniformLocation(shaderProgram, "uNMatrix");
+
+      shaderProgram.ambientColorUniform = gl.getUniformLocation(shaderProgram, "uAmbientColor");
+      shaderProgram.lightingDirectionUniform = gl.getUniformLocation(shaderProgram, "uLightingDirection");
+      shaderProgram.directionalColorUniform = gl.getUniformLocation(shaderProgram, "uDirectionalColor");
+      shaderProgram.materialShininessUniform = gl.getUniformLocation(shaderProgram, "uMaterialShininess");
+      shaderProgram.pointLightingLocationUniform = gl.getUniformLocation(shaderProgram, "uPointLightingLocation");
+      shaderProgram.pointLightingSpecularColorUniform = gl.getUniformLocation(shaderProgram, "uPointLightingSpecularColor");
+      shaderProgram.pointLightingDiffuseColorUniform = gl.getUniformLocation(shaderProgram, "uPointLightingDiffuseColor");
+    }
+
+    function initScene() {
+      setNormals(icosahedronGeometry);
+
+      var whiteCube = (JSON.parse(JSON.stringify(cubeGeometry)));
+      for (var i = 0; i < whiteCube.colors.length; i++) { whiteCube.colors[i] = 1.0; };
+      var model = initModel(whiteCube);
+      scene.models["cube1"] = model;
+      mat4.translate(model.transform, model.transform, [0, 0.01, 0]);
+
+      model = initModel(cubeGeometry);
+      mat4.translate(model.transform, model.transform, [-2, 0.01, 2]);
+      scene.models["cube2"] = model;
+
+      model = initModel(icosahedronGeometry);
+      model.scale = [0.1, 0.1, 0.1];
+      mat4.translate(model.transform, model.transform, [3, 3, 3]);
+      scene.models["light"] = model;
+
+      model = initModel(teapotGeometry);
+      model.scale = [0.1, 0.1, 0.1];
+      mat4.translate(model.transform, model.transform, [3, 0.29, -2]);
+      scene.models["teapot"] = model;
+
+      model = initModel(planeGeometry);
+      model.scale = [5, 5, 1];
+
+      mat4.rotate(model.transform, model.transform, degToRad(90), [1, 0, 0]);
+      mat4.translate(model.transform, model.transform, [0, 0, 0.5]);
+      scene.models["plane"] = model;
+
+      interactionTarget = scene;
+    }
+
+    var updateVelocity = new UpdateVelocity();
+    function UpdateVelocity() {
+      var oldPos = null;
+      return function (pointer) {
+        if (oldPos === null) {
+          oldPos = [pointer.X, pointer.Y];
+          return [0, 0];
+        } else {
+          var deltaX = oldPos[0] - pointer.X;
+          var deltaY = oldPos[1] - pointer.Y;
+          var fudgefactor = 2;
+          var rvelX = deltaX / fudgefactor;
+          var rvelY = deltaY / fudgefactor;
+
+          oldPos = [pointer.X, pointer.Y];
+          return [rvelX, rvelY];
+        }
+      }
+    }
+
+    function animate() {
+      var newRotationMatrix = mat4.create();
+
+      for (var key in scene.models) {
+        model = scene.models[key];
+
+        mat4.identity(newRotationMatrix);
+        mat4.rotateY(newRotationMatrix, newRotationMatrix, degToRad(model.rvelocity[0]));
+        mat4.rotateX(newRotationMatrix, newRotationMatrix, degToRad(model.rvelocity[1]));
+        mat4.multiply(model.transform, newRotationMatrix, model.transform);
+
+        model.rvelocity[0] /= 1.08;
+        if (Math.abs(model.rvelocity[0]) < 0.001) model.rvelocity[0] = 0;
+        model.rvelocity[1] /= 1.08;
+        if (Math.abs(model.rvelocity[1]) < 0.001) model.rvelocity[1] = 0;
+      }
+
+      mat4.identity(newRotationMatrix);
+      mat4.rotateY(newRotationMatrix, newRotationMatrix, degToRad(scene.rvelocity[0]));
+      mat4.rotateX(newRotationMatrix, newRotationMatrix, degToRad(scene.rvelocity[1]));
+      mat4.multiply(scene.transform, newRotationMatrix, scene.transform);
+
+      for (var i = 0; i < scene.rvelocity.length - 1; i++) {
+        scene.rvelocity[i] /= 1.08;
+        if (Math.abs(scene.rvelocity[i]) < 0.001)
+          scene.rvelocity[i] = 0;
+      }
+    }
+
+    function drawAll() {
+      gl.uniform3fv(shaderProgram.ambientColorUniform, ambientLightColour);
+
+      mat4.perspective(pMatrix, 45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0);
+      mat4.identity(mvMatrix);
+      var t = vec3.fromValues(0.0, -1.0, Pointer.Z - 9);
+      mat4.translate(mvMatrix, mvMatrix, t);
+      mat4.multiply(mvMatrix, mvMatrix, scene.transform);
+
+      var lightingDirection = [
+          scene.models["light"].transform[12],
+          scene.models["light"].transform[13],
+          scene.models["light"].transform[14]
+      ];
+      vec3.transformMat4(lightingDirection, lightingDirection, scene.transform);
+
+      var lightPosition = lightingDirection;
+      var adjustedLD = vec3.create();
+      vec3.normalize(adjustedLD, lightingDirection);
+      gl.uniform3fv(shaderProgram.lightingDirectionUniform, adjustedLD);
+      gl.uniform3fv(shaderProgram.directionalColorUniform, directionalLightColour);
+      gl.uniform3fv(shaderProgram.pointLightingLocationUniform, lightPosition);
+      gl.uniform3fv(shaderProgram.pointLightingSpecularColorUniform, directionalLightColour);
+      gl.uniform3fv(shaderProgram.pointLightingDiffuseColorUniform, directionalLightColour);
+      gl.uniform1f(shaderProgram.materialShininessUniform, 4.0);
+
+      gl.clearColor(0, 0.5, 0, 1);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      gl.enable(gl.DEPTH_TEST);
+
+      for (var key in scene.models) {
+        mvPushMatrix();
+
+        var model = scene.models[key];
+
+        mat4.multiply(mvMatrix, mvMatrix, model.transform);
+        mat4.scale(mvMatrix, mvMatrix, model.scale);
+
+        gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
+        gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexPositionBuffer);
+        gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, model.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexColorBuffer);
+        gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, model.vertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        var normalMatrix = mat3.create();
+        mat3.normalFromMat4(normalMatrix, mvMatrix);
+        gl.uniformMatrix3fv(shaderProgram.nMatrixUniform, false, normalMatrix);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexNormalBuffer);
+        gl.vertexAttribPointer(shaderProgram.vertexNormalAttribute, model.vertexNormalBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.vertexIndexBuffer);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexTextureCoordBuffer);
+        gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, model.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, model.texture);
+        gl.uniform1i(shaderProgram.samplerUniform, 0);
+
+        gl.drawElements(gl.TRIANGLES, model.vertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+        //gl.drawElements(gl.LINE_LOOP, model.vertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+
+        mvPopMatrix();
+      }
+    }
+
+    function init() {
+      var canvas = document.getElementById("mycanvas");
+      canvas.width = window.innerWidth * 0.75;
+      canvas.height = window.innerHeight * 0.75;
+      Pointer.initInputHandlers(canvas);
+      gl = WebGLUtils.setupWebGL(canvas);
+
+      gl.viewportWidth = canvas.width;
+      gl.viewportHeight = canvas.height;
+
+      shaderProgram = initShaderProgram("vertex", "fragment");
+      getVariableLocations()
+      initScene();
+
+      (function update() {
+        requestAnimFrame(update);
+        velocity = updateVelocity(Pointer);
+        if (Pointer.L) {
+          scene.rvelocity[0] = -velocity[0];
+          scene.rvelocity[1] = -velocity[1];
+        }
+        animate();
+        drawAll();
+      })();
+    }
+  </script>
+</head>
+
+<body onload="init()">
+  <canvas id="mycanvas"></canvas>
+  <canvas id="textureCanvas" style="border:1px solid #00ffff;"></canvas>
+</body>
+
+</html>
