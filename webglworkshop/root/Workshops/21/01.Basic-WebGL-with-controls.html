@@ -1,0 +1,169 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>Simple WebGL with interaction</title>
+  <link href='https://fonts.googleapis.com/css?family=Merriweather:400,400italic,700,700italic' rel='stylesheet' type='text/css'>
+  <link href="StyleSheet.css" rel="stylesheet" />
+
+  <script id="vertex" type="x-shader">
+    precision highp float;
+
+    attribute vec3 aVertexPosition;
+    uniform bool uUsePersepctive;
+
+    mat4 mtxModelView = mat4 (1.0, 0.0,    0.0, 0.0,
+                              0.0, 1.0,    0.0, 0.0,
+                              0.0, 0.0,    1.0, 0.0,
+                              0.0, 0.0, -3.333, 1.0 );
+
+    mat4 mtxProjection = mat4 (2.41421, 0.0, 0.0, 0.0,
+                               0.0, 2.41421, 0.0, 0.0,
+                               0.0, 0.0, -1.002002, -1.0,
+                               0.0, 0.0, -0.2002002, 0.0 );
+    void main() {
+      if(uUsePersepctive)
+        gl_Position = mtxProjection * mtxModelView * vec4(aVertexPosition, 1.0);
+      else
+        gl_Position = vec4(aVertexPosition, 1.0);
+    }
+  </script>
+
+  <script id="fragment" type="x-shader">
+    precision highp float;
+    uniform vec4 uColor;
+
+    void main() {
+      gl_FragColor = uColor;
+    }
+  </script>
+
+  <script type="text/javascript">
+    var shaderProgram;
+    var cubeVertexPositionBuffer;
+    var vertices;
+
+    function init() {
+      document.getElementById("updateZ").onchange = updateZ;
+      document.getElementById("updateZ").oninput = updateZ;
+
+      document.getElementById("usePerspective").onchange = useProjectionMatrix;
+      
+
+      initWebGL();
+      initShaderProgram();
+      initGeometry();
+      animate();
+    }
+
+    function initWebGL() {
+      canvas = document.getElementById("mycanvas");
+      gl = canvas.getContext("webgl");
+
+      var names = ["webgl", "experimental-webgl", "webkit-3d", "moz-webgl"];
+      for (var i = 0; i < names.length; ++i) {
+        try {
+          gl = canvas.getContext(names[i]);
+        }
+        catch (e) {}
+        if (gl) break;
+      }
+
+      gl.viewportWidth = canvas.width;
+      gl.viewportHeight = canvas.height;
+    }
+
+    function initShaderProgram() {
+      var v = document.getElementById("vertex").firstChild.nodeValue;
+      var f = document.getElementById("fragment").firstChild.nodeValue;
+
+      var vs = gl.createShader(gl.VERTEX_SHADER);
+      gl.shaderSource(vs, v);
+      gl.compileShader(vs);
+
+      var fs = gl.createShader(gl.FRAGMENT_SHADER);
+      gl.shaderSource(fs, f);
+      gl.compileShader(fs);
+
+      shaderProgram = gl.createProgram();
+      gl.attachShader(shaderProgram, vs);
+      gl.attachShader(shaderProgram, fs);
+      gl.linkProgram(shaderProgram);
+
+      if (!gl.getShaderParameter(vs, gl.COMPILE_STATUS))
+        console.log(gl.getShaderInfoLog(vs));
+
+      if (!gl.getShaderParameter(fs, gl.COMPILE_STATUS))
+        console.log(gl.getShaderInfoLog(fs));
+
+      if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS))
+        console.log(gl.getProgramInfoLog(shaderProgram));
+
+      gl.useProgram(shaderProgram);
+
+      shaderProgram.uColor = gl.getUniformLocation(shaderProgram, "uColor");
+      gl.uniform4fv(shaderProgram.uColor, [0.0, 1.0, 0.0, 1.0]);
+
+      shaderProgram.aVertexPosition = gl.getAttribLocation(shaderProgram, "aVertexPosition");
+      gl.enableVertexAttribArray(shaderProgram.aVertexPosition);
+    }
+
+    function initGeometry() {
+      vertices = new Float32Array([-0.5,  0.5, 0.0,
+                                    0.5, -0.5, 0.0,
+                                   -0.5, -0.5, 0.0]);
+
+      cubeVertexPositionBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
+      cubeVertexPositionBuffer.itemSize = 3;
+      cubeVertexPositionBuffer.numItems = vertices.length / cubeVertexPositionBuffer.itemSize;
+    }
+
+    function draw() {
+      gl.vertexAttribPointer(shaderProgram.aVertexPosition, cubeVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+      gl.clearColor(0, 0.5, 0, 1);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+
+      gl.drawArrays(gl.TRIANGLES, 0, cubeVertexPositionBuffer.numItems);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      draw();
+    }
+
+    function updateZ(event) {
+      vertices[2] = Number(this.value);
+      gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+    }
+
+    function useProjectionMatrix(event) {
+      var uUseProjectionMatrix = gl.getUniformLocation(shaderProgram, "uUsePersepctive");
+      gl.uniform1i(uUseProjectionMatrix, this.checked);
+    }
+  </script>
+</head>
+<body onload="init()">
+  <table>
+    <tr>
+      <td><canvas id="mycanvas" width="500" height="500"></canvas></td>
+      <td>
+        Vertex z position<br />
+        -5<input id="updateZ" type="range" name="points" min="-5" max="5" step="0.1">+5<br /><br />
+        Use projection matrix (perspective): <input id="usePerspective" type="checkbox" />
+      </td>
+    </tr>
+  </table>
+
+  <p>This example adds some simple interaction to the basic example.</p>
+  <p>WebGL renders into a 2&#215;2&#215;2 clip volume, use the slider to move the top vertex. For values greater than 1 and less than -1 the triangle is clipped.</p>
+  <p>Checking the perspective checkbox applies a perspective transformation to each vertex rendering the triangle in 3D. Now moving the vertex will not necessarily clip the triangle.<br />
+    The matrix mtxModelView moves each vertex by -3.333 away from the camera.<br />
+    The matrix mtxProjection applies a perspective to each vertex (magic numbers).<br />
+    Note that matrix operations (e.g. multiplication) are supported natively by GLSL.
+  </p>
+  <p>Changing the colour of the triangle is left as an exercise for the reader.</p>
+</body>
+</html>

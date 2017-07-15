@@ -1,0 +1,135 @@
+﻿
+<!DOCTYPE html>
+<html>
+<head>
+  <title>GLSL</title>
+
+  <link href='https://fonts.googleapis.com/css?family=Merriweather:400,400italic,700,700italic' rel='stylesheet' type='text/css'>
+  <link href="StyleSheet.css" rel="stylesheet" />
+
+  <script src="three.js"></script>
+  <script src="OrbitControls.js"></script>
+
+  <script src="smiley.js"></script>
+
+  <script id="vertexShader" type="x-shader/x-vertex">
+    uniform sampler2D uTexture;
+    varying vec4 vColour;
+
+    void main() {
+      vColour = texture2D( uTexture, uv );
+      gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+    }
+  </script>
+
+  <script id="fragmentShader" type="x-shader/x-fragment">
+    varying vec4 vColour;
+
+    void main() {
+      gl_FragColor = vColour;
+    }
+  </script>
+
+  <script>
+    window.addEventListener ?
+    window.addEventListener("load", init, false) :
+    window.attachEvent && window.attachEvent("onload", init);
+
+    function init() {
+      var container;
+      var renderer;
+      var camera;
+
+      var scene = new THREE.Scene();
+      var clock = new THREE.Clock();
+      var orbitControl;
+
+      container = document.getElementById("renderTarget");
+      renderer = createRenderer(container);
+      camera = createCamera(container);
+      var shape = addShape(scene);
+
+      orbitControl = new THREE.OrbitControls(camera, renderer.domElement);
+      orbitControl.object.position.z *= 1.25;
+
+      window.addEventListener('resize', function (event) {
+        var w = container.clientWidth;
+        var h = container.clientHeight;
+        renderer.setSize(w, h);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+      });
+
+      var render = function () {
+        orbitControl.update(clock.getDelta());
+        requestAnimationFrame(render);
+        renderer.render(scene, camera);
+      };
+
+      render();
+    }
+
+    function addShape(scene) {
+      var geometry = new THREE.PlaneGeometry(15, 15, 10, 10);
+      var material = createMaterial();
+      //material.wireframe = true;
+      var shape = new THREE.Mesh(geometry, material);
+      scene.add(shape);
+    }
+
+    function createMaterial() {
+      var image = new Image();
+      var texture = new THREE.Texture(image);
+      texture.needsUpdate = true;
+
+      var shaderMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+          uTexture: { type: "t", value: texture }
+        },
+        //attributes: {},
+        vertexShader: document.getElementById('vertexShader').textContent,
+        fragmentShader: document.getElementById('fragmentShader').textContent
+      });
+
+      image.onload = function () {
+        texture.needsUpdate = true;
+      };
+      image.src = imgSmiley;
+
+      return shaderMaterial;
+    }
+
+    function createCamera(container) {
+      var w = container.clientWidth;
+      var h = container.clientHeight;
+      var camera = new THREE.PerspectiveCamera(75, w / h, 0.1, 1000);
+      camera.position.z = 30;
+      return camera;
+    }
+
+    function createRenderer(container) {
+      var renderer = new THREE.WebGLRenderer({ alpha: true });
+      renderer.setPixelRatio(window.devicePixelRatio);
+      container.appendChild(renderer.domElement);
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      return renderer;
+    }
+  </script>
+</head>
+<body id="container">
+  <div id="content">
+    <div id="container">
+      <div id="renderTarget">
+      </div>
+    </div>
+    <h3>Texture time</h3>
+    <p>Note: I finally worked out how to use a 64 bit encoded image, so there's no need to run a server for this example.</p>
+    <p>Here we apply the image colours to the vertices, which are then interpolated over the plane. Looking pants.</p>
+    <p>
+      To improve the image, increase the number of vertices used to make up the plane(line 73).<br />
+      Also, toggle wireframe on/off to get a better sense of where the vertices are and how their colour is set.
+    </p>
+    <p>Usually, you shouldn't apply images in the vertex sheader. To see how it's done properly take a look at 21.Threejs-image-fragment.html.</p>
+  </div>
+</body>
+</html>

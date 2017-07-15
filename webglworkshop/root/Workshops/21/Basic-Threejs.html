@@ -1,0 +1,49 @@
+﻿
+<!DOCTYPE html>
+<html>
+<head>
+  <title>GLSL</title>
+  <style>
+    #renderTarget {
+      border-style: solid;
+      border-width: 1px;
+      border-radius: 10px;
+      display: inline-block;
+      position: absolute;
+      width: 75%;
+      height: 75%
+    }
+  </style>
+  <script src="../../libs/three-r74/three.js"></script>
+  <script src="../../libs/three-r74/OrbitControls.js"></script>
+
+  <script src="Basic-Threejs.js"></script>
+  <script src="smiley.js"></script>
+
+  <script id="vertexShader" type="x-shader/x-vertex">
+    varying vec2 vUv;
+    uniform sampler2D uTexture;
+
+    void main() {
+      vUv = uv;
+      vec3 t = normalize(position);
+      t *= 15.0;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4( t, 1.0 );
+    }
+  </script>
+
+  <script id="fragmentShader" type="x-shader/x-fragment">
+    varying vec2 vUv;
+    uniform vec4 uColour;
+
+    void main() {
+      gl_FragColor = uColour;
+    }
+  </script>
+
+</head>
+<body id="container">
+  <div id="renderTarget">
+  </div>
+</body>
+</html>
