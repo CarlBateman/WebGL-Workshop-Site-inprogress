@@ -1,0 +1,163 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+  <meta charset="utf-8" />
+
+  <style>
+    body {
+      color: #000;
+      font-family: Monospace;
+      font-size: 13px;
+      text-align: center;
+      font-weight: bold;
+      background-color: #fff;
+      margin: 0px;
+      overflow: hidden;
+    }
+
+    #info {
+      color: #000;
+      position: absolute;
+      top: 10px;
+      width: 100%;
+      padding: 5px;
+      //left: 30%;
+    }
+
+    #floatingDiv {
+      color: #ffffff;
+      background: #0094ff;
+      opacity: 0.5;
+      width: 80%;
+      /*height: 80%;*/
+      position: absolute;
+      left: 10%;
+      top: 10%;
+      border: 1px solid #555555;
+      padding: 10px;
+      display: none;
+      overflow: auto;
+      z-index: 100;
+    }
+  </style>
+
+  <script src="../libs/three-r74/three.js"></script>
+  <script src="../libs/three-r74/FaceNormalsHelper.js"></script>
+  <script src="../libs/three-r74/HeartGeometry.js"></script>
+  <script src="../libs/three-r74/OrbitControls.js"></script>
+  <script src="../libs/three-r74/OBJExporter.js"></script>
+  <script src="../libs/three-r74/TypedGeometryExporter.js"></script>
+
+  <script>
+    window.addEventListener ?
+    window.addEventListener("load", init, false) :
+    window.attachEvent && window.attachEvent("onload", init);
+
+    var camera, scene, renderer;
+    var cameraControls;
+    var polyhedron;
+
+    function init() {
+      fillScene();
+      createModel();
+      addToDOM();
+      render();
+      writeToConsole();
+    }
+
+    function writeToConsole() {
+      var exporter = new THREE.OBJExporter();
+      var result = exporter.parse(scene);
+
+      //exporter.parse(mesh);
+
+      var floatingDiv = document.getElementById("floatingDiv");
+      floatingDiv.style.display = 'block';
+      floatingDiv.innerHTML = result.split('\n').join('<br />');
+
+      //console.log( result.split('\n').join('<br />'));
+    }
+
+    function createModel() {
+      var geometry = new THREE.HeartGeometry({ points_per_layer: 32, no_of_layers: 8 });
+
+      //var mesh = new THREE.Mesh(geometry);
+      //var exporter = new THREE.TypedGeometryExporter();
+      //exported = exporter.parse(geometry);
+
+      var matTexture = new THREE.MeshPhongMaterial({
+        shading: THREE.FlatShading,
+      });
+
+      polyhedron = new THREE.Mesh(geometry, matTexture);
+
+      polyhedron.scale.set(100, 100, 100);
+      scene.add(polyhedron);
+    }
+
+    function fillScene() {
+      // RENDERER
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.gammaInput = true;
+      renderer.gammaOutput = true;
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setClearColor(0xAAAABB, 1.0);
+
+      // CAMERA
+      var aspectRatio = window.innerWidth / window.innerHeight;
+      camera = new THREE.PerspectiveCamera(40, aspectRatio, 1, 10000);
+      camera.position.set(400, 0, 0);
+
+      // CONTROLS
+      cameraControls = new THREE.OrbitControls(camera, renderer.domElement);
+      cameraControls.target.set(0, 0, 0);
+
+      scene = new THREE.Scene();
+      scene.fog = new THREE.Fog(0x808080, 2000, 4000);
+
+      // LIGHTS
+      var ambientLight = new THREE.AmbientLight(0x222222);
+
+      var light1 = new THREE.DirectionalLight(0xffddcc, 1.0);
+      light1.position.set(200, 600, 500);
+
+      var light2 = new THREE.DirectionalLight(0xeeeeff, 0.6);
+      light2.position.set(-500, -100, -200);
+
+      var light3 = new THREE.DirectionalLight(0xeedfff, 0.6);
+      light3.position.set(100, 100, -200);
+
+      scene.add(ambientLight);
+      scene.add(light1);
+      scene.add(light2);
+      scene.add(light3);
+    }
+
+
+    function addToDOM() {
+      var container = document.getElementById('container');
+      var canvas = container.getElementsByTagName('canvas');
+      if (canvas.length > 0) {
+        container.removeChild(canvas[0]);
+      }
+      container.appendChild(renderer.domElement);
+    }
+
+    function render() {
+      cameraControls.update();
+      renderer.render(scene, camera);
+      window.requestAnimationFrame(render);
+    }
+
+  </script>
+</head>
+<body id="container">
+  <div id="info">
+    Test - HeartGeometry (for <a href="http://threejs.org" target="_blank">three.js</a>)<br />
+    Export
+
+    <div id="floatingDiv"></div>
+  </div>
+</body>
+</html>

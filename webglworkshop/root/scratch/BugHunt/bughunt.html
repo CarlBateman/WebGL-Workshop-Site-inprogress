@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Simple WebGL</title>
+  <link href='https://fonts.googleapis.com/css?family=Merriweather:400,400italic,700,700italic' rel='stylesheet' type='text/css'>
+  <link href="StyleSheet.css" rel="stylesheet" />
+
+  <script id="vertex" type="x-shader">
+    precision highp float;
+    attribute vec3 aVertexPosition;
+
+    void main() {
+      gl_Position = vec4(aVertexPosition, 1.0);
+    }
+  </script>
+
+  <script id="fragment" type="x-shader">
+    precision highp float;
+    uniform vec4 uColor;
+
+    void main() {
+      gl_FragColor = uColor;
+    }
+  </script>
+
+  <script type="text/javascript">
+    var shaderProgram;
+    var cubeVertexPositionBuffer;
+    var vertices;
+
+    function init() {
+      initWebGL();
+      initShaderProgram();
+      initGeometry();
+      animate();
+    }
+
+    function initWebGL() {
+      canvas = document.getElementById("mycanvas");
+      gl = canvas.getContext("webgl");
+
+      var names = ["webgl", "experimental-webgl", "webkit-3d", "moz-webgl"];
+      for (var i = 0; i < names.length; ++i) {
+        try {
+          gl = canvas.getContext(names[i]);
+        }
+        catch (e) {}
+        if (gl) break;
+      }
+
+      gl.viewportWidth = canvas.width;
+      gl.viewportHeight = canvas.height;
+    }
+
+    function initShaderProgram() {
+      var v = document.getElementById("vertex").firstChild.nodeValue;
+      var f = document.getElementById("fragment").firstChild.nodeValue;
+
+      var vs = gl.createShader(gl.VERTEX_SHADER);
+      gl.shaderSource(vs, v);
+      gl.compileShader(vs);
+
+      var fs = gl.createShader(gl.FRAGMENT_SHADER);
+      gl.shaderSource(fs, f);
+      gl.compileShader(fs);
+
+      shaderProgram = gl.createProgram();
+      gl.attachShader(shaderProgram, vs);
+      gl.attachShader(shaderProgram, fs);
+      gl.linkProgram(shaderProgram);
+
+      if (!gl.getShaderParameter(vs, gl.COMPILE_STATUS))
+        console.log(gl.getShaderInfoLog(vs));
+
+      if (!gl.getShaderParameter(fs, gl.COMPILE_STATUS))
+        console.log(gl.getShaderInfoLog(fs));
+
+      if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS))
+        console.log(gl.getProgramInfoLog(shaderProgram));
+
+      gl.useProgram(shaderProgram);
+
+      shaderProgram.uColor = gl.getUniformLocation(shaderProgram, "uColor");
+      gl.uniform4fv(shaderProgram.uColor, [0.0, 1.0, 0.0, 1.0]);
+
+      console.log( gl.getUniformLocation(shaderProgram, "flarb") );
+      shaderProgram.aVertexPosition = gl.getAttribLocation(shaderProgram, "aVertexPosition");
+      gl.enableVertexAttribArray(shaderProgram.aVertexPosition);
+    }
+
+    function initGeometry() {
+      vertices = new Float32Array([-0.5,  0.5, 0.0,
+                                    0.5, -0.5, 0.0,
+                                   -0.5, -0.5, 0.0]);
+
+      cubeVertexPositionBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
+      cubeVertexPositionBuffer.itemSize = 3;
+      cubeVertexPositionBuffer.numItems = vertices.length / cubeVertexPositionBuffer.itemSize;
+    }
+
+    function draw() {
+      gl.vertexAttribPointer(shaderProgram.aVertexPosition, cubeVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+      gl.clearColor(0, 0.5, 0, 1);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+
+      gl.drawArrays(gl.TRIANGLES, 0, cubeVertexPositionBuffer.numItems);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      draw();
+    }
+  </script>
+</head>
+
+<body onload="init()">
+  <canvas id="mycanvas" width="500" height="500"></canvas>
+  <p>This example represents one of the simplest WebGL programs, with the simplest possible shader program with the simplest possible vertex and fragment shaders. It gives some idea of how long-winded WebGL can be to set up. However, WebGL does scale well, but in any case for the remainder of the workshop we will use Three.js. This will make life a lot easier by taking the grind out of scene management, asset creation, etc..</p>
+  <p>The vertex shader starts at line 8, it passes along any vertex data unchanged, so rendering in 2D.<br />
+  The fragment shader starts at line 17, and simply sets the colour of the triangle to that specified in JavaScript, green.</p>
+  <p>The shaders are placed in script tags for easy access. The type "x-shader" has no special meaning. Shader source code (GLSL) can be also stored as strings or as seperate files and read via XHR.</p>
+  <p>The colour of the triangle can be altered by setting the appropriate RGBA value at line 84. RGBA components should be in the range [0, 1].</p>
+  <p>The triangle's vertex positions can be changed by setting the XYZ co-ordinates at lines 91-93. WebGL renders into a 2&#215;2&#215;2 clip volume, so any values oustide the range [-1, 1] will be clipped truncating the triangle.</p>
+  <p>The triangle can be scaled by multiplying or dividing at line 13. Note that the multiplier or divisor must be a float (e.g. 2.0 or 0.5). Using an int (e.g. 2) will cause a compilation error.</p>
+  <p>The file 01.Basic-WebGL-with-controls.html adds some interaction to this basic demo.</p>
+</body>
+</html>
