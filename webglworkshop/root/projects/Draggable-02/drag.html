@@ -1,0 +1,41 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+  <meta charset="utf-8" />
+  <script src="DraggableLayer.js"></script>
+  <link href="drag.css" rel="stylesheet" />
+
+</head>
+<body>
+  <p><a href="javascript:setDialog('open', {title: 'Example Title', content: 'Hello!'});">Open Dialog!</a> <a href="javascript:setDialog('close');">Close Dialog!</a></p>
+
+  <h3>Advanced Example</h3>
+<pre><code>document.getElementById('ny-btn').onclick = function() {
+    setDialog("open", {
+        title: "The Dialog Box Title",
+        width: 400,
+        height: 200,
+        content: "Hello!",
+        buttons: {
+            "Delete": function() {
+                setDialog("open", {
+                    title: "Confirmation",
+                    content: "Are you sure?",
+                    overlay: true,
+                    buttons: {
+                        "Yes": function() {
+                            setDialog("close");
+                        },
+                        "No": function() {
+                            alert("Canceled!");
+                            setDialog("close");
+                        }
+                    }
+                });
+            }
+        }
+    });
+};</code></pre>
+</body>
+</html>
