@@ -1,0 +1,105 @@
+﻿
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Cross Section Test</title>
+  <style>
+    body {
+      color: #000;
+      font-family: Monospace;
+      font-size: 13px;
+      text-align: center;
+      font-weight: bold;
+      background-color: #fff;
+      margin: 0px;
+      overflow: hidden;
+    }
+
+    #info {
+      color: #000;
+      position: absolute;
+      top: 10px;
+      width: 100%;
+      padding: 5px;
+      /*left: 30%;*/
+    }
+
+    #renderTarget {
+      border-style: solid;
+      border-width: 1px;
+      border-radius: 10px;
+      display: inline-block;
+      position: absolute;
+      right: 0;
+      width: 49.5%;
+      height: 50%
+    }
+
+    #slice {
+      border-style: solid;
+      border-width: 1px;
+      border-radius: 10px;
+      display: inline-block;
+      position: absolute;
+      left: 0;
+      width: 49.5%;
+      height: 50%
+    }
+  </style>
+  <script src="../../libs/datgui/dat.gui.min.js"></script>
+
+  <script src="../../libs/three-r74/three.js"></script>
+  <!--<script src="../../libs/three-r74/Object3D.js"></script>-->
+  <script src="../../libs/three-r74/OrbitControls.js"></script>
+  <script src="../../libs/three-r74/PlaneGeometry.js"></script>
+  <script src="../../libs/three-r74/FaceNormalsHelper.js"></script>
+  <script src="../../libs/three-r74/VertexNormalsHelper.js"></script>
+
+  <script src="CrossSection.js"></script>
+  <script src="Slice.js"></script>
+
+
+  <script id="vertexShader" type="x-shader/x-vertex">
+    varying vec2 vUv;
+    varying vec4 vVtxColour;
+    uniform sampler2D txInner;
+    uniform sampler2D txOuter;
+    uniform sampler2D txMid;
+    uniform float pos;
+
+    void main() {
+      vUv = vec2(uv.x, pos);//x;
+      if(uv.y < 0.1)
+        vVtxColour = texture2D( txOuter, vUv );
+      else if(uv.y > 0.9)
+        vVtxColour = texture2D( txInner, vUv );
+      else 
+        vVtxColour = texture2D( txMid, vUv );
+      gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+    }
+  </script>
+
+  <script id="fragmentShader" type="x-shader/x-fragment">
+    varying vec2 vUv;
+    varying vec4 vVtxColour;
+    uniform sampler2D transfer;
+
+    void main() {
+      float idx = vVtxColour.x;
+      //gl_FragColor = vVtxColour;//texture2D( tDiffuse, vUv );
+      gl_FragColor = texture2D( transfer, vec2(idx, 1.0) );
+    }
+  </script>
+
+</head>
+<body id="container">
+  <div id="info">
+    Test - Cross Section (for <a href="http://threejs.org" target="_blank">three.js</a>)<br />
+    Simple example <a href="CrossSection.html" target="_blank">here</a>
+  </div>
+
+  <div id="renderTarget">
+  </div>
+  <div id="slice"></div>
+</body>
+</html>

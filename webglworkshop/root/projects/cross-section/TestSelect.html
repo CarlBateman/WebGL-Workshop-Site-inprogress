@@ -1,0 +1,140 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>three.js webgl - geometry - terrain</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+  <style>
+    body {
+      color: #61443e;
+      font-family: Monospace;
+      font-size: 13px;
+      text-align: center;
+      background-color: #bfd1e5;
+      margin: 0px;
+      overflow: hidden;
+    }
+
+    #info {
+      position: absolute;
+      top: 0px;
+      width: 100%;
+      padding: 5px;
+    }
+
+    a {
+      color: #a06851;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="container"><br /><br /><br /><br /><br />Generating world...</div>
+  <div id="info"><a href="http://threejs.org" target="_blank">three.js</a> - webgl terrain raycasting demo</div>
+
+  <script src="../../libs/three-r74/three.js-master/build/three.min.js"></script>
+
+  <script src="../../libs/three-r74/three.js-master/examples/js/controls/OrbitControls.js"></script>
+
+  <script src="../../libs/three-r74/three.js-master/examples/js/ImprovedNoise.js"></script>
+  <script src="../../libs/three-r74/three.js-master/examples/js/Detector.js"></script>
+  <script src="../../libs/three-r74/three.js-master/examples/js/libs/stats.min.js"></script>
+
+  <script>
+			if ( ! Detector.webgl ) {
+				Detector.addGetWebGLMessage();
+				document.getElementById( 'container' ).innerHTML = "";
+			}
+
+			var container, stats;
+			var camera, controls, scene, renderer;
+			var mesh, texture;
+
+			var clock = new THREE.Clock();
+
+			var raycaster = new THREE.Raycaster();
+			var mouse = new THREE.Vector2();
+
+			init();
+			animate();
+
+			function init() {
+				container = document.getElementById( 'container' );
+
+				camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 20000 );
+
+				scene = new THREE.Scene();
+
+				controls = new THREE.OrbitControls(camera);
+				controls.center.set( 0.0, 100.0, 0.0 );
+				controls.userPanSpeed = 100;
+
+				var geometry = new THREE.CylinderGeometry(500,500, 1000, 32, 1, true);
+				var material = new THREE.MeshBasicMaterial({ color: 0x888888, side: THREE.DoubleSide  });//createEarthMaterial(img);//
+				var cylinder = new THREE.Mesh(geometry, material);
+				cylinder.rotation.z = Math.PI / 2;
+				cylinder.rotation.x = 1;
+			  //return cylinder;
+				scene.add(cylinder);
+
+				camera.position.y =  controls.center.y + 2000;
+				camera.position.x = 2000;
+
+
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.setClearColor( 0xbfd1e5 );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth / 2, window.innerHeight/2 );
+
+				container.innerHTML = "";
+
+				container.appendChild( renderer.domElement );
+				container.addEventListener( 'mousedown', onMouseMove, false );
+
+				stats = new Stats();
+				stats.domElement.style.position = 'absolute';
+				stats.domElement.style.top = '0px';
+				container.appendChild( stats.domElement );
+
+				//
+
+				window.addEventListener( 'resize', onWindowResize, false );
+			}
+
+			function onWindowResize() {
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth / 2, window.innerHeight / 2 );
+			}
+
+			function animate() {
+				requestAnimationFrame( animate );
+
+				render();
+				stats.update();
+			}
+
+			function render() {
+				//controls.update( clock.getDelta() );
+				renderer.render( scene, camera );
+			}
+
+			function onMouseMove( event ) {
+				mouse.x = ( event.clientX / renderer.domElement.clientWidth ) * 2 - 1;
+				mouse.y = - ( event.clientY / renderer.domElement.clientHeight ) * 2 + 1;
+				raycaster.setFromCamera( mouse, camera );
+
+				// See if the ray from the camera into the world hits one of our meshes
+				var intersects = raycaster.intersectObjects( scene.children );
+
+				// Toggle rotation bool for meshes that we clicked
+				if (intersects.length > 0) {
+				  console.log(intersects[0])
+				}
+			}
+  </script>
+
+</body>
+</html>
