@@ -1,0 +1,101 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>Material Explorer</title>
+  <meta charset="utf-8" />
+
+  <style>
+    body {
+      border: 0;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    canvas {
+      top: 0;
+      width: 100vw;
+      height: 100vh;
+      display: block;
+    }
+
+    #view {
+      position: absolute;
+      width: 100vw;
+      height: 100vh;
+      display: block;
+    }
+
+    #theLayer {
+      z-index:1;
+    }
+
+    #controls {
+      top: 0;
+      border-style: solid;
+      border-width: 0;
+      border-bottom-width: 18px;
+    }
+  </style>
+
+
+  <script src="../../libs/three-r84/three.js"></script>
+  <script src="../../libs/three-r84/OrbitControls.js"></script>
+  <script src="../../libs/three-r84/TransformControls.js"></script>
+
+  <script src="../../libs/babylon/babylon.js"></script>
+
+  <!--<script src="../../libs/datgui/dat.gui.js"></script>-->
+  <script src="../../libs/datgui-0.6.3/dat.gui.js"></script>
+
+  <script src="DraggableLayer.js"></script>
+
+  <script src="main.js"></script>
+  <script src="options.js"></script>
+  <script src="engine-three.js"></script>
+  <script src="engine-babylon.js"></script>
+
+  <!--<script src="model.js"></script>-->
+  <script src="scene.js"></script>
+  <script src="facade.js"></script>
+</head>
+
+<body>
+  <div id="theLayer" style="position:absolute;left:100px;top:100px;visibility:visible">
+    <table border="0" width="250" bgcolor="#424242" cellspacing="0" cellpadding="5">
+      <tr>
+        <td width="100%">
+          <table border="0" width="100%" cellspacing="0" cellpadding="0" height="36">
+            <tr>
+              <td id="titleBar" style="cursor:move" width="100%">
+                <ilayer width="100%" onSelectStart="return false">
+                  <layer width="100%" onMouseover="isHot=true;if (isN4) ddN4(theLayer)" onMouseout="isHot=false">
+                    <font face="Arial" color="#FFFFFF">Options</font>
+                  </layer>
+                </ilayer>
+              </td>
+              <!--<td style="cursor:hand" valign="top" align="right">
+                <a href="#" onClick="hideMe();return false"><font color=#ffffff size=2 face=arial style="text-decoration:none">_</font></a>
+              </td>-->
+            </tr>
+            <tr>
+              <td id="controls" width="100%" bgcolor="#000000" style="padding:4px" colspan="2">
+                <!-- CONTENT AREA //-->
+                <!-- PLACE YOUR CONTENT HERE //-->
+                <!-- END OF CONTENT AREA //-->
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <div id="view">
+    <!--<canvas id="glcanvas"></canvas>-->
+    <p>Value1: <span id="value1"></span></p>
+    <p>Value2: <span id="id2"></span></p>
+    <p>Dropdown1: <span id="Dropdown1"></span></p>
+    <p>Dropdown2: <span id="Dropdown2"></span></p>
+  </div>
+</body>
+</html>

@@ -1,0 +1,42 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>Material Explorer</title>
+  <meta charset="utf-8" />
+  <style>
+    body {
+      border: 0;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    canvas {
+      top: 0;
+      width: 100vw;
+      height: 100vh;
+      display: block;
+    }
+  </style>
+
+
+  <!--<script src="../../libs/three-r84/three.js"></script>-->
+  <script src="../../libs/three-r84/three.min.js"></script>
+  <script src="../../libs/three-r84/OrbitControls.js"></script>
+  <script src="../../libs/three-r84/TransformControls.js"></script>
+
+  <script src="../../libs/datgui/dat.gui.js"></script>
+  <!--<script src="../../libs/datgui-0.6.3/dat.gui.js"></script>-->
+
+  <script src="gui-options.js"></script>
+  <script src="main.js"></script>
+
+</head>
+<body>
+  <!--<div id="debug"></div>-->
+  <!--<div id="controls">  </div>-->
+
+  <div id="view">
+    <canvas id="glcanvas"></canvas>
+  </div>
+</body>
+</html>

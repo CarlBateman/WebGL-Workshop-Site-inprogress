@@ -1,0 +1,96 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>Material Explorer</title>
+  <meta charset="utf-8" />
+
+  <style>
+    body {
+      border: 0;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    canvas {
+      top: 0;
+      width: 100vw;
+      height: 100vh;
+      display: block;
+    }
+
+    #view {
+      position: absolute;
+      width: 100vw;
+      height: 100vh;
+      display: block;
+    }
+
+    .drag {
+      position: relative;
+    }
+
+    #debug {
+      float: left;
+      margin: 0 0 10px 10px;
+    }
+
+    #controls {
+      float: right;
+      top: 0;
+      z-index:1;
+      background-color: green;
+      border-style: solid;
+      border-width: 5px;
+      border-top-width: 25px;
+      border-bottom-width: 25px;
+      border-color: paleturquoise;
+      border-radius: 2px;
+    }
+
+    #gui {
+      /*position: absolute;*/
+      /*height: 100%;
+      width: 100%;*/
+      /*top: 20px;
+      left: 20px;
+      right: -1em;*/
+    }
+  </style>
+
+
+  <script src="../../libs/three-r84/three.js"></script>
+  <script src="../../libs/three-r84/OrbitControls.js"></script>
+  <script src="../../libs/three-r84/TransformControls.js"></script>
+
+  <script src="../../libs/babylon/babylon.js"></script>
+
+  <!--<script src="../../libs/datgui/dat.gui.js"></script>-->
+  <script src="../../libs/datgui-0.6.3/dat.gui.js"></script>
+
+  <script src="draggable.js"></script>
+  <script src="main.js"></script>
+  <script src="options.js"></script>
+  <script src="engine-three.js"></script>
+  <script src="engine-babylon.js"></script>
+
+  <!--<script src="model.js"></script>-->
+  <script src="scene.js"></script>
+  <script src="facade.js"></script>
+
+
+</head>
+<body>
+  <!--<div id="debug"></div>-->
+  <div class="drag" id="controls">
+    <p style="text-align:center; position: absolute;top:-2.3em;">contrl</p>
+  </div>
+
+  <div id="view">
+    <!--<canvas id="glcanvas"></canvas>-->
+    <p>Value1: <span id="value1"></span></p>
+    <p>Value2: <span id="id2"></span></p>
+    <p>Dropdown1: <span id="Dropdown1"></span></p>
+    <p>Dropdown2: <span id="Dropdown2"></span></p>
+  </div>
+</body>
+</html>
