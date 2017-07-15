@@ -1,0 +1,119 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>Babylon.js demo</title>
+  <meta charset="utf-8" />
+  <style>
+    html, body {
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    #renderCanvas {
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+  </style>
+  <script src="babylon.js"></script>
+
+  <script type="application/vertexShader" id="vertexShaderCode">
+    attribute vec3 position;
+    uniform mat4 worldViewProjection;
+    varying vec2 vUv;
+
+    void main() {
+      vUv = (position.xy + position.zx) /20.0;
+      gl_Position = worldViewProjection * vec4(position, 1.0 );
+    }
+  </script>
+
+  <script type="application/fragmentShader" id="fragmentShaderCode">
+    #define PI 3.14159
+    #define TWO_PI (PI*2.0)
+    #define N 68.5
+
+    varying vec2 vUv;
+    uniform float time;
+    uniform float alpha;
+    uniform vec2 resolution;
+
+    void main() {
+      vec2 center = gl_FragCoord.xy;
+      center.x=-10.12*sin(time/200.0);
+      center.y=-10.12*cos(time/200.0);
+
+      vec2 v = (vUv.xy - resolution) / min(resolution.y,resolution.x) * 15.0;
+      v.x=v.x-10.0;
+      v.y=v.y-200.0;
+      float col = 0.0;
+
+      for(float i = 0.0; i < N; i++) {
+        float a = i * (TWO_PI/N) * 61.95;
+        col += cos(TWO_PI*(v.y * cos(a) + v.x * sin(a) + sin(time*0.004)*100.0 ));
+      }
+
+      col /= 5.0;
+
+      gl_FragColor = vec4(col*1.0, -col*1.0, -col*4.0, 1.0);
+    }
+  </script>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', function () {
+      var canvas = document.getElementById('renderCanvas');
+      var engine = new BABYLON.Engine(canvas, true);
+
+      var scene = new BABYLON.Scene(engine);
+      var camera = new BABYLON.ArcRotateCamera("ArcRotateCamera", 0, 0, 0, new BABYLON.Vector3(20, 10, 0), scene);
+      camera.setTarget(BABYLON.Vector3.Zero());
+      camera.attachControl(canvas, false);
+
+      var light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0, 1, 0), scene);
+
+      var sphere = BABYLON.Mesh.CreateSphere('sphere', 16, 4, scene);
+      sphere.position.y = 2;
+
+      var ground = BABYLON.Mesh.CreateGround('ground1', 10, 10, 2, scene);
+
+      var animatedMaterial = new BABYLON.ShaderMaterial("anim", scene,
+        {
+          vertexElement: "vertexShaderCode",
+          fragmentElement: "fragmentShaderCode",
+        },
+        {
+          attributes: ["position"],
+          uniforms: ["worldViewProjection", "time", "scale", "alpha", "resolution"]
+        }
+      );
+      animatedMaterial.setFloat("time", 0.2);
+      animatedMaterial.setFloat("scale", 0.2);
+      animatedMaterial.setFloat("alpha", 0.6);
+      animatedMaterial.setVector2("resolution", new BABYLON.Vector2(1, 1));
+      sphere.material = animatedMaterial;
+
+      var now = new Date();
+      var then = now;
+
+      engine.runRenderLoop(function () {
+        var time = (now - then);
+        now = Date.now();
+
+        scene.render();
+
+        animatedMaterial.setFloat("time", time / 1000);
+      });
+
+      window.addEventListener('resize', function () {
+        engine.resize();
+      });
+    });
+  </script>
+</head>
+<body>
+  <canvas id="renderCanvas"></canvas>
+</body>
+</html>

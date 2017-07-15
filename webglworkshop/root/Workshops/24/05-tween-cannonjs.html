@@ -1,0 +1,95 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>A Tween demo</title>
+  <meta charset="utf-8" />
+  <style>
+    html, body {
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    #renderCanvas {
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+  </style>
+  <script src="babylon.js"></script>
+  <script src="cannon.js"></script>
+  <script src="Tween.js"></script>
+
+   <script>
+    window.addEventListener('DOMContentLoaded', function () {
+      var canvas = document.getElementById('renderCanvas');
+      var engine = new BABYLON.Engine(canvas, true);
+      var sphere0;
+      var sphere1;
+
+      var duration = 2;
+      var positionTweenDown;
+      var positionTweenUp;
+
+      var createScene = function () {
+        var scene = new BABYLON.Scene(engine);
+
+        var gravityVector = new BABYLON.Vector3(0, -5, 0);
+        var physicsPlugin = new BABYLON.CannonJSPlugin();
+        scene.enablePhysics(gravityVector, physicsPlugin);
+
+        var camera = new BABYLON.ArcRotateCamera("ArcRotateCamera", 0, 0, 0, new BABYLON.Vector3(20, 10, 0), scene);
+        camera.setTarget(BABYLON.Vector3.Zero());
+        camera.target.y = 5;
+        camera.attachControl(canvas, false);
+
+        var light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0, 1, 0), scene);
+
+        sphere0 = BABYLON.Mesh.CreateSphere('sphere0', 16, 2, scene);
+        sphere0.position.y = 10;
+        sphere0.position.z = 0;
+
+        sphere1 = BABYLON.Mesh.CreateSphere('sphere1', 16, 2, scene);
+        sphere1.position.y = 10;
+        sphere1.position.z = -1.5;
+
+        var ground = BABYLON.Mesh.CreateGround('ground1', 10, 10, 2, scene);
+        ground.position.y = -1;
+
+
+
+        positionTweenDown = new TWEEN.Tween(sphere0.position).to({ x: 0, y: 2, z: 0 }, duration * 1000).easing(TWEEN.Easing.Sinusoidal.In);//.start();
+
+        positionTweenUp = new TWEEN.Tween(sphere0.position).to({ x: 0, y: 10, z: 0 }, duration * 1000).easing(TWEEN.Easing.Sinusoidal.Out);//.start();
+
+        positionTweenDown.chain(positionTweenUp);
+        positionTweenUp.chain(positionTweenDown);
+        positionTweenDown.start()
+
+
+        sphere1.setPhysicsState(BABYLON.PhysicsEngine.SphereImpostor, { mass: 1, restitution: 1. });
+        sphere1.setPhysicsLinkWith(sphere1, new BABYLON.Vector3(0, 0.5, 0), new BABYLON.Vector3(0, -0.5, 0));
+
+        ground.setPhysicsState(BABYLON.PhysicsEngine.BoxImpostor, { mass: 0, friction: 0.0, restitution: 1.0 });
+
+        return scene;
+      }
+      var scene = createScene();
+
+      engine.runRenderLoop(function () {
+        TWEEN.update();
+        scene.render();
+      });
+
+      window.addEventListener('resize', function () {
+        engine.resize();
+      });
+    });
+  </script>
+</head>
+<body>
+  <canvas id="renderCanvas"></canvas>
+</body>
+</html>

@@ -1,0 +1,104 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>Babylon.js demo</title>
+  <meta charset="utf-8" />
+  <style>
+    html, body {
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    #renderCanvas {
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+  </style>
+  <script src="babylon.js"></script>
+
+  <script type="application/vertexShader" id="vertexShaderCode">
+      attribute vec3 position;
+      uniform float uOffset;
+      uniform mat4 worldViewProjection;
+      vec3 tPosition;
+
+      void main() {
+        tPosition = position;
+        tPosition.x += cos(uOffset + tPosition.z);
+        gl_Position = worldViewProjection * vec4(tPosition, 1.0);
+      }
+  </script>
+  <script type="application/fragmentShader" id="fragmentShaderCode">
+      uniform vec4 uColour;
+
+      void main() {
+        gl_FragColor = uColour;
+      }
+  </script>
+  <script>
+    window.addEventListener('DOMContentLoaded', function () {
+
+      var canvas = document.getElementById('renderCanvas');
+      var engine = new BABYLON.Engine(canvas, true);
+      var animatedMaterial;
+      var time = new Date();
+
+      var createScene = function () {
+        var scene = new BABYLON.Scene(engine);
+        var camera = new BABYLON.ArcRotateCamera("ArcRotateCamera", 0, 0, 0, new BABYLON.Vector3(20, 10, 0), scene);
+        camera.setTarget(BABYLON.Vector3.Zero());
+        camera.attachControl(canvas, false);
+
+        var light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0, 1, 0), scene);
+
+        //var box = BABYLON.Mesh.CreateBox('box', 2, scene);
+        var box = BABYLON.Mesh.CreateSphere('sphere1', 16, 2, scene);
+        box.position.y = 1;
+
+        animatedMaterial = new BABYLON.ShaderMaterial("anim", scene,
+          {
+            vertexElement: "vertexShaderCode",
+            fragmentElement: "fragmentShaderCode",
+          },
+          {
+            attributes: ["position"],
+            uniforms: ["worldViewProjection", "uColour", "uOffset"]
+          });
+        animatedMaterial.setColor4("uColour", BABYLON.Color4.FromInts(129,121,153,254));
+        box.material = animatedMaterial;
+
+        var ground = BABYLON.Mesh.CreateGround('ground1', 10, 10, 2, scene);
+
+        return scene;
+      }
+      var scene = createScene();
+
+      var then = time, offset = 0;
+
+      engine.runRenderLoop(function () {
+        var delta = (time - then);
+        offset += (delta / 500);
+        offset %= 10;
+
+        then = time;
+        time = Date.now();
+
+        animatedMaterial.setFloat("uOffset", offset);
+
+        scene.render();
+      });
+
+      window.addEventListener('resize', function () {
+        engine.resize();
+      });
+    });
+  </script>
+</head>
+<body>
+  <canvas id="renderCanvas"></canvas>
+</body>
+</html>

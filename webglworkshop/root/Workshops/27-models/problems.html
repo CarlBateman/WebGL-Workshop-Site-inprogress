@@ -1,0 +1,52 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>Triangle</title>
+  <meta charset="utf-8" />
+
+  <style>
+    body {
+      border: 0;
+      margin: 0;
+    }
+
+    canvas {
+      width: 100vw;
+      height: 100vh;
+      display: block;
+    }
+  </style>
+
+  <script src="problems.js"></script>
+  <script src="frame_1.js"></script>
+  <script src="frame_2.js"></script>
+  <script src="frame_3.js"></script>
+  <script src="frame_4.js"></script>
+
+  <script id="vertex" type="x-shader/x-vertex">
+    attribute vec3 aVertex;
+
+    void main() {
+      //vec3 vertex = aVertex;
+      vec3 vertex = floor(aVertex*10.0)/10.0;
+      gl_Position = vec4(vertex / 200.0, 1.0);
+      //gl_Position.x -= 1.0;
+      gl_Position.y -= 0.5;
+    }
+  </script>
+
+  <script id="fragment" type="x-shader/x-fragment">
+    precision mediump float;
+
+    uniform vec3 uColour;
+
+    void main() {
+      gl_FragColor = vec4(uColour, 1.0);
+    }
+  </script>
+</head>
+
+<body>
+  <canvas id="glCanvas"></canvas>
+</body>
+</html>

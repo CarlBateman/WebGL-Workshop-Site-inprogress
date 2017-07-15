@@ -1,0 +1,72 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+  <meta charset="utf-8" />
+
+  <style>
+    body {
+      border: 0;
+      margin: 0;
+    }
+
+    canvas {
+      width: 100vw;
+      height: 100vh;
+      display: block;
+    }
+
+    #example-title {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: white;
+      background-color: gray;
+      padding: 0.5em;
+      max-width: 24%;
+      text-align:right;
+    }
+    </style>
+
+  <script src="../../libs/misc/webgl-utils-01.js"></script>
+  <script src="../../libs/misc/webgl-utils.js"></script>
+  <script src="../../libs/misc/Pointer.js"></script>
+  <script src="../../libs/misc/glMatrix-0.9.5.min.js"></script>
+
+  <script src="03-shapes-webgl1.js"></script>
+  <script src="cube-geometry.js"></script>
+  <script src="anti-cube-geometry.js"></script>
+
+  <script id="vertex" type="x-shader/x-vertex">
+    attribute vec3 aVertex;
+    uniform mat4 uModelViewMatrix;
+    uniform mat4 uProjectionMatrix;
+
+    attribute vec4 aColour;
+    varying vec4 vColour;
+
+    void main(void) {
+      vColour = aColour;
+      gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(aVertex, 1.0);
+    }
+  </script>
+
+  <script id="fragment" type="x-shader/x-fragment">
+    precision highp float;
+    uniform vec4 uColour;
+    varying vec4 vColour;
+
+    void main() {
+      gl_FragColor = vColour;
+    }
+  </script>
+
+</head>
+<body>
+  <div id="example-title">
+    Show cube: <input name="show" id="showCube" type="radio" value="0" checked="checked"/><br />
+    Show anti-cube: <input name="show" id="showAntiCube" type="radio" value="1" />
+  </div>
+  <canvas id="glcanvas"></canvas>
+</body>
+</html>

@@ -1,0 +1,126 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>Animation vs simulation</title>
+  <meta charset="utf-8" />
+  <style>
+    html, body {
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    #renderCanvas {
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+  </style>
+  <script src="babylon.js"></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', function () {
+      var canvas = document.getElementById('renderCanvas');
+      var engine = new BABYLON.Engine(canvas, true);
+      var sphere0;
+      var sphere1;
+
+      var time = Date.now();
+
+      var createScene = function () {
+        var scene = new BABYLON.Scene(engine);
+        var camera = new BABYLON.ArcRotateCamera("ArcRotateCamera", 0, 0, 0, new BABYLON.Vector3(20, 10, 0), scene);
+        camera.setTarget(BABYLON.Vector3.Zero());
+        camera.target.y = 5;
+        camera.attachControl(canvas, false);
+
+        var light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0, 1, 0), scene);
+
+        sphere0 = BABYLON.Mesh.CreateSphere('sphere0', 16, 2, scene);
+        sphere0.position.y = 10;
+        sphere0.position.z = 1.5;
+
+        sphere0.material = new BABYLON.StandardMaterial("texture1", scene);
+        sphere0.material.diffuseColor = new BABYLON.Color3(1.0, 0.2, 0.7);
+
+
+        sphere1 = BABYLON.Mesh.CreateSphere('sphere1', 16, 2, scene);
+        sphere1.position.y = 10;
+        sphere1.position.z = -1.5;
+
+        sphere1.material = new BABYLON.StandardMaterial("texture1", scene);
+        sphere1.material.diffuseColor = new BABYLON.Color3(0.2, 1.0, 0.7);
+
+        var ground = BABYLON.Mesh.CreateGround('ground1', 6, 10, 2, scene);
+        ground.position.y = -1;
+
+        return scene;
+      }
+      var scene = createScene();
+
+
+      // animate balls
+      // 1 via "physics"
+      var Physics = {
+        a: -50,
+        u: 0,
+        v: 0,
+        s: 10,
+        update: function (t) {
+          if (t > 0.02) t = 0.02;
+
+          this.u = this.v;
+          this.v = this.v + this.a * t;
+          this.s += (this.u + this.v) * 0.5 * t;
+          if (this.s < 0) {
+            this.s = 0;//this.s;
+            this.v = -this.v * 1.007;
+          } else {
+            if (this.s > 10) this.s = 10;
+          }
+        }
+      }
+
+      // 2 via tweening (use cos/sin)
+      var Tween = {
+        a: 0,
+        s: 0,
+        update: function (t) {
+          this.a += t / (2 * Math.PI);
+          if (this.a > Math.PI)
+            this.a -= Math.PI
+
+          if (this.a > Math.PI / 2)
+            this.s = -Math.cos(this.a);
+          else
+            this.s = Math.cos(this.a);
+        }
+      }
+
+      var then = time, duration = 0;
+      engine.runRenderLoop(function () {
+        duration = time - then;
+        then = time;
+        time = Date.now();
+
+        Physics.update(duration / 1000);
+        sphere0.position.y = Physics.s;
+
+        Tween.update(duration / 155);
+        sphere1.position.y = Tween.s * 10;
+
+        scene.render();
+      });
+
+      window.addEventListener('resize', function () {
+        engine.resize();
+      });
+    });
+  </script>
+</head>
+<body>
+  <canvas id="renderCanvas"></canvas>
+</body>
+
+</html>

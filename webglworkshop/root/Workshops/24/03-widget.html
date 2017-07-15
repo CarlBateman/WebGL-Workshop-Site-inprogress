@@ -1,0 +1,133 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>WebGL Widget pathetic attempt</title>
+  <meta charset="utf-8">
+
+  <script id="vertex" type="x-shader">
+    uniform vec3 rot;
+    uniform vec3 cubeRot;
+    uniform float z_off;
+    uniform float rad;
+    uniform float target;
+    uniform float radOffset;
+
+    mat4 makeRotX(in float a) {
+      return mat4( 1.0,    0.0,     0.0, 0.0,
+                   0.0, cos(a), -sin(a), 0.0,
+                   0.0, sin(a),  cos(a), 0.0,
+                   0.0,    0.0,     0.0, 1.0); }
+
+    mat4 makeRotZ(in float a) {
+      return mat4( cos(a), sin(a), 0.0, 0.0,
+                  -sin(a), cos(a), 0.0, 0.0,
+                      0.0,   0.0,  1.0, 0.0,
+                      0.0,   0.0,  0.0, 1.0); }
+
+    mat4 makeRotY(in float a) {
+      return mat4( cos(a), 0.0, sin(a), 0.0,
+                      0.0, 1.0,    0.0, 0.0,
+                  -sin(a), 0.0, cos(a), 0.0, 
+                      0.0, 0.0,    0.0, 1.0); }
+
+    mat4 uMVMatrix = mat4( 1.0, 0.0, 0.0, 0.0,
+                           0.0, 1.0, 0.0, 0.0,
+                           0.0, 0.0, 1.0, 0.0,
+                           0.0, 0.0, -20, 1.0);
+
+    // projection matrix
+    mat4 uPMatrix = mat4( 2.41421,     0.0,        0.0,  0.0,
+                              0.0, 2.41421,        0.0,  0.0,
+                              0.0,     0.0,  -1.002002, -1.0,
+                              0.0,     0.0, -0.2002002,  0.0);
+
+    attribute vec3 aVertexPosition;
+
+    vec3 vtxNormal = vec3(0.0,0.0,-1.0);
+    vec3 normal = vec3(0.0,0.0,-1.0);
+    varying vec3 vTransformedNormal;
+    varying vec4 vColor;
+    uniform vec4 uColor;
+    varying vec2 vTextureCoord;
+
+    void main() {
+      mat4 rotX = makeRotX(rot.x);
+      mat4 rotZ = makeRotZ(rot.z);
+      mat4 rotY = makeRotY(rot.y);
+
+      mat4 cubeRotX = makeRotX(cubeRot.x);
+      mat4 cubeRotZ = makeRotZ(cubeRot.z);
+      mat4 cubeRotY = makeRotY(cubeRot.y);
+
+      vec3 aVertexPosition2 = aVertexPosition;
+      vTextureCoord.s=aVertexPosition.x/7.;
+      vTextureCoord.t=aVertexPosition.y/3.5;
+
+      vTextureCoord+=0.5;
+
+      if(rad>0.0) {
+        // if the vertex is NOT at the radius treat as a face normal
+        // else treat as a vertex normal
+        //normal = normalize(aVertexPosition2);
+
+        vtxNormal = normalize(aVertexPosition2);
+        float len = length(aVertexPosition2);
+        if(len < rad) {
+          len += radOffset;
+          if(len > rad)
+            aVertexPosition2 = vtxNormal * rad;
+          else
+            aVertexPosition2 = vtxNormal * len;
+        }
+      }
+
+      // merge face and vertex normals
+      float vtxWeight = radOffset/target;
+      normal = normalize(mix(normal, vtxNormal,vtxWeight));
+
+      aVertexPosition2.z -= z_off;
+      gl_Position = uPMatrix * uMVMatrix * cubeRotX * cubeRotY * cubeRotZ * rotX * rotY * rotZ * vec4(aVertexPosition2, 1.0);
+      vTransformedNormal = normalize(uPMatrix * cubeRotX * cubeRotY * cubeRotZ * rotX * rotY * rotZ * vec4(normal, 1.0)).xyz;
+      vColor = uColor;
+    }
+  </script>
+
+  <script id="fragment" type="x-shader">
+    precision mediump float;
+    varying vec4 vColor;
+    varying vec3 vTransformedNormal;
+    vec3 uLightingDirection = normalize(vec3(10.0, 10.0, 0.0));
+    vec3 uDirectionalColor = vec3(0.8, 0.8, 0.8);
+    vec3 uAmbientColor = vec3(0.2, 0.2, 0.2);
+
+    varying vec2 vTextureCoord;
+    uniform sampler2D uSampler;
+
+    uniform bool useTexture;
+
+    void main() {
+    vec4 texColour = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+
+    float directionalLightWeighting = max(dot(vTransformedNormal, uLightingDirection), 0.0);
+    vec3 vLightWeighting = uAmbientColor + uDirectionalColor * directionalLightWeighting;
+    vec4 color = vColor * vec4(vLightWeighting, 1.0);
+
+    // mix colours usng alpha blend
+    if(useTexture) {
+      gl_FragColor = vec4(mix(texColour.rgb, color.rgb, color.a), texColour.a);
+      //gl_FragColor = vec4(mix(texColour.rgb, color.rgb, texColour.a), color.a);
+      //gl_FragColor = vec4(mix(texColour.rgb, color.rgb, color.a), 1.0-texColour.a);
+      gl_FragColor = (color * (1.0-texColour.a) + texColour * texColour.a) * (color.a);
+    }
+    else
+      gl_FragColor = color;//(color * (1.0-texColour.a) + texColour * texColour.a) * (color.a);//
+    }
+  </script>
+
+  <script type="text/javascript" src="webgl-setup.js"></script>
+  <script type="text/javascript" src="widget.js"></script>
+</head>
+<body onload="init()">
+  <canvas id="mycanvas" width="500" height="500" style="background: white;"></canvas>
+</body>
+</html>

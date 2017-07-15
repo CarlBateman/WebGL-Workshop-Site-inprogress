@@ -1,0 +1,37 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+  <meta charset="utf-8" />
+  <script src="../../libs/pixijs/pixi.js"></script>
+
+  <script>
+    "use strict"
+
+    window.addEventListener('DOMContentLoaded', function () {
+      var app = new PIXI.Application();
+      document.body.appendChild(app.view);
+      app.renderer.backgroundColor = 0xFFFFFF;
+
+      PIXI.loader.add('homer', 'homer.gif').load(function (loader, resources) {
+        var homer = new PIXI.Sprite(resources.homer.texture);
+
+        homer.x = app.renderer.width / 2;
+        homer.y = app.renderer.height / 2;
+
+        homer.anchor.x = 0.5;
+        homer.anchor.y = 0.5;
+
+        app.stage.addChild(homer);
+
+        app.ticker.add(function () {
+          homer.rotation += 0.01;
+        });
+      });
+    });
+  </script>
+</head>
+<body>
+
+</body>
+</html>
