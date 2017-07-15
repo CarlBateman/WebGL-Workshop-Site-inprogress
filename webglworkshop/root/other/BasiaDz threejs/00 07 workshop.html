@@ -1,0 +1,195 @@
+﻿<!DOCTYPE html>
+
+<html>
+
+<head>
+  <title>stay positive</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=yes, minimum-scale=1.0, maximum-scale=1.0">
+  <style>
+    body {
+      font-family: Monospace;
+      background-color: #f0f0f0;
+      margin: 0;
+      overflow: hidden;
+    }
+    /*#WebGL-output {
+      z-index: 3;
+    }
+    .ac {
+      z-index: 2 !important;
+    }*/
+  </style>
+</head>
+<body>
+
+  <div id="Stats-output">
+  </div>
+
+  <div id="WebGL-output">
+  </div>
+  <meta charset="utf-8" />
+  <script src="build/three.js"></script>
+  <script src="js/controls/OrbitControls.js"></script>
+  <script src="js/renderers/Projector.js"></script>
+  <script src="js/renderers/CanvasRenderer.js"></script>
+  <script src="js/libs/dat.gui.min.js"></script>
+  <script src="js/libs/stats.min.js"></script>
+
+  <script type="text/javascript">
+
+    function init() {
+      var stats = initStats();
+      var scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight);
+      var webGLRenderer = new THREE.WebGLRenderer();
+      webGLRenderer.setClearColor(new THREE.Color(0xEEEEEE, 1.0));
+      webGLRenderer.setSize(window.innerWidth, window.innerHeight);
+      webGLRenderer.shadowMapEnabled = true;
+
+      var camera, scene, controls;
+
+      var floorTexture = new THREE.ImageUtils.loadTexture('textures/brick_bump.jpg');
+      floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
+      floorTexture.repeat.set(3, 3);
+      var floorMaterial = new THREE.MeshBasicMaterial({ map: floorTexture, side: THREE.DoubleSide });
+      var floorGeometry = new THREE.PlaneGeometry(1000, 1000, 10, 10);
+      var floor = new THREE.Mesh(floorGeometry, floorMaterial);
+
+      scene.add(floor);
+
+      camera.up.set(0, 0, 1);
+      camera.position.x = -400;
+      camera.position.y = -700;
+      camera.position.z = 400;
+      camera.lookAt(0, 0, 0);
+
+      controls = new THREE.OrbitControls(camera);
+      controls.maxPolarAngle = Math.PI / 2;
+      controls.minDistance = 200;
+      controls.maxDistance = 1000;
+
+      document.getElementById("WebGL-output").appendChild(webGLRenderer.domElement);
+
+      /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+      var gridXZ = new THREE.GridHelper(100, 10);
+      gridXZ.setColors(new THREE.Color(0x006600), new THREE.Color(0x006600));
+      gridXZ.position.set(-100, 0, 100);
+      scene.add(gridXZ);
+
+      var gridXY = new THREE.GridHelper(100, 10);
+      gridXY.position.set(-100, 100, 0);
+      gridXY.rotation.x = Math.PI / 2;
+      gridXY.setColors(new THREE.Color(0x000066), new THREE.Color(0x000066));
+      scene.add(gridXY);
+
+      var gridYZ = new THREE.GridHelper(100, 10);
+      gridYZ.position.set(0, 100, 100);
+      gridYZ.rotation.z = Math.PI / 2;
+      gridYZ.setColors(new THREE.Color(0x660000), new THREE.Color(0x660000));
+      scene.add(gridYZ);
+
+      ////////////////////////////////////////////////////////////////////////////////////////////
+
+      var shape = createMesh(new THREE.ShapeGeometry(drawShape()));
+
+      scene.add(shape);
+
+      var step = 1;
+
+      var manip = new function () {
+        this.amount = 200;
+        this.steps = 1;
+        //this.position = 0;
+
+        this.asGeom = function () {
+          scene.remove(shape);
+
+          var options = {
+            amount: manip.amount,
+            bevelEnabled: false
+          };
+
+          // Error 1 -- can't assign shape position until its created!!!
+          //shape.position.x = parameters.x;
+          //shape.position.y = parameters.y;
+          //shape.position.z = parameters.z;
+
+          shape = createMesh(new THREE.ExtrudeGeometry(drawShape(), options));
+
+          shape.position.x = parameters.x;
+          shape.position.y = parameters.y;
+          shape.position.z = parameters.z;
+
+          scene.add(shape);
+        };
+      };
+
+      var parameters = { x: 0, y: 0, z: 0, v: 200, };
+
+      var numberList = [200, 300, 400];
+      var gui = new dat.GUI();
+      ////console.log(document.getElementsByClassName("dg main a"));
+      ////var ttt = document.getElementsByClassName("dg main a");
+      ////ttt.onmousedown = function(event) {event.}
+      gui.add(parameters, 'v', numberList).name('List');
+
+      var tryb = gui.add(manip, 'amount', 200, 480).onChange(manip.asGeom);
+
+      manip.asGeom();
+
+      var shapeZ = gui.add(parameters, 'z').min(0).max(600).step(1);
+      shapeZ.onChange(function (value) {
+        shape.position.z = value;
+      });
+
+      gui.open();
+
+      render();
+
+      function drawShape() {
+        var shapePts = [];
+
+        shapePts.push(new THREE.Vector3(20, 0));
+        shapePts.push(new THREE.Vector3(150, 0));
+        shapePts.push(new THREE.Vector3(110, 95));
+
+        var shape = new THREE.Shape(shapePts);
+
+        return shape;
+      }
+
+      function createMesh(geom) {
+        var meshMaterial = new THREE.MeshNormalMaterial({
+          shading: THREE.FlatShading,
+          transparent: true,
+          opacity: 0.7
+        });
+        var wireFrameMat = new THREE.MeshBasicMaterial();
+        wireFrameMat.wireframe = true;
+        var mesh = THREE.SceneUtils.createMultiMaterialObject(geom, [meshMaterial]);
+        return mesh;
+      }
+
+      function render() {
+        controls.update();
+        stats.update();
+        requestAnimationFrame(render);
+        webGLRenderer.render(scene, camera);
+      }
+
+      function initStats() {
+        var stats = new Stats();
+        stats.setMode(0); // 0: fps, 1: ms
+        stats.domElement.style.position = 'absolute';
+        stats.domElement.style.left = '0px';
+        stats.domElement.style.top = '0px';
+        document.getElementById("Stats-output").appendChild(stats.domElement);
+        return stats;
+      }
+    }
+    window.onload = init;
+  </script>
+</body>
+</html>
