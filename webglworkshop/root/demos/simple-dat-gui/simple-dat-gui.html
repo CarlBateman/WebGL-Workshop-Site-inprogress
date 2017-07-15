@@ -1,0 +1,84 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>SImple dat.gui demo</title>
+  <meta charset="utf-8" />
+  <script src="../../libs/datgui/dat.gui.min.js"></script>
+  <script type="text/javascript">
+
+    var MyOptions = function () {
+      this.value1 = 0.8;
+      this.value2 = 10;
+      this.value3 = 1;
+      this.value4 = 1;
+      this.message = 'Pizza';
+      this.speed = 0;
+      this.color = 0;
+
+      // init values on screen (id3 done external to object)
+      document.getElementById("value1").innerText = this.value1;
+      document.getElementById("id2").innerText = this.value2;
+      document.getElementById("Dropdown1").innerText = this.message;
+      document.getElementById("Dropdown2").innerText = this.speed;
+      document.getElementById("Color").innerText = this.color;
+
+      // object handles value display on init and update
+      // init value on screen and update on change
+      (this.t = function t() {
+        document.getElementById("id4").innerText = this.value4;
+      }.bind(this))();
+    }
+
+    window.onload = function() {
+      var options = new MyOptions();
+      var gui = new dat.GUI();
+
+      // init value on screen
+      document.getElementById("id3").innerText = options.value3;
+
+      // add MyOptions field to gui and define onChange handler
+      gui.add(options, 'value1', 0, 5).onChange(function () {
+        document.getElementById("value1").innerText = options.value1;
+      });
+
+      // as above but define step size
+      gui.add(options, 'value2', -50, 50).step(1).onChange(function () {
+        document.getElementById("id2").innerText = options.value2;
+      });
+
+      // as above but add onFinishChange handler
+      gui.add(options, 'value3', -5, 5).step(1).onFinishChange(function () {
+        document.getElementById("id3").innerText = options.value3;
+      });
+
+      // as above but use handler from MyOptions/options
+      gui.add(options, 'value4', -5, 5).onChange(options.t);
+
+      // dropdown using array
+      gui.add(options, 'message', ['Pizza', 'Chrome', 'Hooray']).onChange(function () {
+        document.getElementById("Dropdown1").innerText = options.message;
+      });
+
+      // dropdown using object
+      gui.add(options, 'speed', { Stopped: 0, Slow: 0.1, Fast: 5 }).onChange(function () {
+        document.getElementById("Dropdown2").innerText = options.speed;
+      });
+
+      // dropdown using object
+      gui.addColor(options, 'color').onChange(function (val) {
+        document.getElementById("Color").innerText = val;
+      });
+    }
+
+  </script>
+</head>
+<body>
+  <p>Value1: <span id="value1"></span></p>
+  <p>Value2: <span id="id2"></span></p>
+  <p>Value3: <span id="id3"></span></p>
+  <p>Value4: <span id="id4"></span></p>
+  <p>Dropdown1: <span id="Dropdown1"></span></p>
+  <p>Dropdown2: <span id="Dropdown2"></span></p>
+  <p>Dropdown2: <span id="Color"></span></p>
+</body>
+</html>

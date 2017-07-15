@@ -1,0 +1,49 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>Simple WebGL</title>
+  <style>
+    /* Make the document fill the viewport */
+    body {
+      margin: 0;
+    }
+    /* Make any canvas fill its container */
+    canvas {
+      display: block; /* or inline-block */
+      width: 100%;
+      height: 100%;
+    }
+    /* the container */
+    #mycanvas {
+      width: 100vw;
+      height: 100vh;
+    }
+  </style>
+
+  <script id="vertex" type="x-shader">
+    precision highp float;
+    attribute vec3 aVertexPosition;
+    attribute vec2 aLimit;
+    varying vec2 vPos;
+
+    void main() {
+      vPos = aLimit;
+      gl_Position = vec4(aVertexPosition, 1.0);
+    }
+  </script>
+
+  <script id="fragment" type="x-shader">
+    precision highp float;
+    varying vec2 vPos;
+
+    void main() {
+      gl_FragColor = vec4(vPos,1.0,1.0);
+    }
+  </script>
+  <script src="mandelbrot.js"></script>
+</head>
+
+<body>
+  <canvas id="mycanvas"></canvas>
+</body>
+</html>
