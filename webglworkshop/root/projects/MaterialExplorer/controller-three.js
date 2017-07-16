@@ -128,13 +128,13 @@ function makeThreeController(sceneGeneric) {
     //targetControl.update();
   };
 
-  function updateScene(sceneState) {
-    camera.position.x=sceneState.x;
-    camera.position.y=sceneState.y;
-    camera.position.z=sceneState.z;
-    //camera.matrixWorldNeedsUpdate = true;
-    //camera.updateMatrixWorld();
-  }
+  //function updateScene(sceneState) {
+  //  camera.position.x=sceneState.x;
+  //  camera.position.y=sceneState.y;
+  //  camera.position.z=sceneState.z;
+  //  //camera.matrixWorldNeedsUpdate = true;
+  //  //camera.updateMatrixWorld();
+  //}
 
 
   var defaultMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
@@ -182,7 +182,7 @@ function makeThreeController(sceneGeneric) {
     clearAll: clearAll,
     getScene: getScene,
     setScene: setScene,
-    updateScene: updateScene,
+    //updateScene: updateScene,
     render: render,
     add: add,
     display: display,

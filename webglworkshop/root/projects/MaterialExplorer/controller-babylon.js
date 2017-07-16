@@ -43,8 +43,6 @@ function makeBabylonController(sceneGeneric) {
     scene = new BABYLON.Scene(engine);
 
     camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 0, new BABYLON.Vector3.Zero(), scene);
-    //camera.position.z = 100;
-    //camera.rebuildAnglesAndRadius();
     camera.fov = 1.309;
     camera.setPosition(new BABYLON.Vector3(0, 0, 10));
 
@@ -127,10 +125,10 @@ function makeBabylonController(sceneGeneric) {
     return camera.position;
   }
 
-  function updateScene(sceneState) {
-    camera.setPosition(new BABYLON.Vector3(sceneState.x, sceneState.y, sceneState.z));
-    //camera.matrixW;
-  }
+  //function updateScene(sceneState) {
+  //  camera.setPosition(new BABYLON.Vector3(sceneState.x, sceneState.y, sceneState.z));
+  //  //camera.matrixW;
+  //}
 
   function add(item) {
     var type = item.type;
@@ -189,7 +187,7 @@ function makeBabylonController(sceneGeneric) {
     clearAll: clearAll,
     getScene: getScene,
     setScene: setScene,
-    updateScene: updateScene,
+    //updateScene: updateScene,
     render: render,
     add: add,
     display: display,

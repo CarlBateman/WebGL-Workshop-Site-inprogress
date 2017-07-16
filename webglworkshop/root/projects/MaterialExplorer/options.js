@@ -2,7 +2,7 @@
 
 var optionsController = {
   options: {
-    Renderer : "Three.js",
+    Renderer: "PlayCanvas.js",
   },
 
   //options: new HandleChanges(),
@@ -17,7 +17,7 @@ var optionsController = {
     var self = this;
     document.getElementById('controls').appendChild(this.gui.domElement)
 
-    this.gui.add(this.options, 'Renderer', ['Three.js', 'Babylon.js']).onFinishChange(function () {
+    this.gui.add(this.options, 'Renderer', ['Three.js', 'Babylon.js', 'PlayCanvas.js']).onFinishChange(function () {
       //self.setEngine(self.options.Renderer);
       var adapter = self.adapter;
       var scene = adapter.getScene();

@@ -11,11 +11,11 @@
     render: function () {
     // handle any changes after render (update) e.g. camera position
       var sceneState = currentEngine.render();
-      for (var i in engines) {
-        if (engines[i] !== currentEngine) {
-          engines[i].updateScene(sceneState);
-        }
-      }
+      //for (var i in engines) {
+      //  if (engines[i] !== currentEngine) {
+      //    engines[i].updateScene(sceneState);
+      //  }
+      //}
     },
     addEngine: function (name, engine) { engines[name] = engine; },
 
