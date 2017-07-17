@@ -62,6 +62,8 @@ function makeBabylonController(sceneGeneric) {
     var sceneGeneric = makeScene();
     sceneGeneric.ambient = scene.ambientColor.asArray();
 
+    sceneGeneric.cameraPos = camera.position.asArray();
+
     for (var i = 0; i < scene.lights.length; i++) {
       var item = scene.lights[i];
       var type = item.cb_tag;// scene.lights[0].__proto__.constructor.name.toLowerCase();// item.type.toLowerCase();
@@ -94,6 +96,7 @@ function makeBabylonController(sceneGeneric) {
   function setScene(sceneGeneric) {
     scene.clearColor = new BABYLON.Color3(...sceneGeneric.background);
     scene.ambientColor = new BABYLON.Color3(...sceneGeneric.ambient);
+    camera.setPosition(new BABYLON.Vector3(...sceneGeneric.cameraPos));
 
     var meshes = sceneGeneric.meshes;
     for (var i = 0; i < meshes.length; i++) {
@@ -124,11 +127,6 @@ function makeBabylonController(sceneGeneric) {
 
     return camera.position;
   }
-
-  //function updateScene(sceneState) {
-  //  camera.setPosition(new BABYLON.Vector3(sceneState.x, sceneState.y, sceneState.z));
-  //  //camera.matrixW;
-  //}
 
   function add(item) {
     var type = item.type;
@@ -187,7 +185,6 @@ function makeBabylonController(sceneGeneric) {
     clearAll: clearAll,
     getScene: getScene,
     setScene: setScene,
-    //updateScene: updateScene,
     render: render,
     add: add,
     display: display,

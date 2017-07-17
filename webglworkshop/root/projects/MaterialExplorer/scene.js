@@ -6,7 +6,9 @@ function makeScene() {
     ambient: [0, 0, 1],
     skybox: "",
     lights: [],
-    meshes: []
+    meshes: [],
+
+    cameraPos: [0, 0, 10],
   }
 }
 

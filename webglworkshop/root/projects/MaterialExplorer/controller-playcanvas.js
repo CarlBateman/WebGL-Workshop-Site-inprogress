@@ -10,6 +10,7 @@ function makePlayCanvasController(sceneGeneric) {
   var camera;
   var controls;
   var ambientLight;
+  var entities = [];
 
   var lightTypes = [];
   lightTypes["spot"] = "";
@@ -18,10 +19,9 @@ function makePlayCanvasController(sceneGeneric) {
   lightTypes["dir"] =  "";
 
   var lightDefaults = [];
-  lightDefaults["spot"] = [0xffffff];
-  lightDefaults["point"] = [0xffffff];
-  lightDefaults["hemi"] = [0xffffff];
-  lightDefaults["dir"] = [0xffffff];
+  lightDefaults["spot"] = [1, 1, 1];
+  lightDefaults["point"] = [1, 1, 1];
+  lightDefaults["dir"] = [1, 1, 1];
 
   var geometryTypes = [];
   geometryTypes["box"] = pc.createBox;
@@ -32,8 +32,10 @@ function makePlayCanvasController(sceneGeneric) {
   var geometryDefaults = [];
   geometryDefaults["box"] = { halfExtents: [2.5, 2.5, 2.5] };
   geometryDefaults["torus"] = { tubeRadius: .25, ringRadius: 2.5, segments: 64 };
-  geometryDefaults["sphere"] = [ ];
-  geometryDefaults["cylinder"] = [ ];
+  geometryDefaults["sphere"] = { radius: 1, segments: 16 };
+  geometryDefaults["cylinder"] = { radius: 1, height: 3, capSegments: 16 };
+  geometryDefaults["capsule"] = { radius: 1, height: 3, side: 16 };
+  geometryDefaults["cone"] = { baseRadius: 1, peakRadius: 0, capSegments: 16 };
 
   function init() {
     glCanvas = document.createElement("canvas");
@@ -56,12 +58,6 @@ function makePlayCanvasController(sceneGeneric) {
     });
     camera.setPosition(0, 0, 10);
     app.root.addChild(camera);
-
-    //controls = new THREE.OrbitControls(camera, renderer.domElement);
-
-    //ambientLight = new THREE.AmbientLight(0x404040);
-    //ambientLight.cb_tag = "ignore";
-    //scene.add(ambientLight);
   }
 
   function clearAll() {
@@ -73,42 +69,47 @@ function makePlayCanvasController(sceneGeneric) {
 
   function getScene() {
     var sceneGeneric = makeScene();
+    sceneGeneric.ambient = app.scene.ambientLight.data;
 
-    //for (var i = 0; i < scene.children.length; i++) {
-    //  var item = scene.children[i];
-    //  var type = item.cb_tag;//item.type.toLowerCase();
+    sceneGeneric.cameraPos = camera.position.data;// [0,0,10];
 
-    //  if (type === "ignore") continue;
 
-    //  if (type.includes("light")) {
-    //    if (type.includes("ambient")) {
-    //      sceneGeneric.ambient = item.color.toArray();
-    //    } else {
-    //      var light = makeLight();
-    //      light.type = type.replace("light", "");
-    //      light.position = item.position;
-    //      light.direction = type === "spotlight" ? item.target.position : item.target.position;
+    for (var i = 0; i < entities.length; i++) {
+      var item = entities[i];
+      var type = item.cb_tag;//item.type.toLowerCase();
 
-    //      sceneGeneric.lights.push(light);
-    //    }
-    //  } else if (type.includes("mesh")) {
-    //    var mesh = makeMesh();
-    //    var geometry = item.geometry;
-    //    mesh.type = item.cb_tag.replace("mesh", "");;//geometry.type.toLowerCase().replace("geometry", "").replace("buffer", "");
+      if (type === "ignore") continue;
+
+      if (type.includes("light")) {
+        var light = makeLight();
+        light.type = type.replace("light", "");
+        light.position = item.position;
+        //light.direction = type === "spotlight" ? item.target.position : item.target.position;
+
+        sceneGeneric.lights.push(light);
+      }
+
+      if (type.includes("mesh")) {
+        var mesh = makeMesh();
+        var geometry = item.geometry;
+        mesh.type = item.cb_tag.replace("mesh", "");;//geometry.type.toLowerCase().replace("geometry", "").replace("buffer", "");
         
-    //    var material = makeMaterial();
+        var material = makeMaterial();
 
-    //    sceneGeneric.meshes.push(mesh);
-    //    //sceneGeneric.material.push(material);
-    //  }
-    //} 
+        sceneGeneric.meshes.push(mesh);
+        //sceneGeneric.material.push(material);
+      }
+    }
 
     return sceneGeneric;
   }
 
   function setScene(sceneGeneric) {
-    //camera.camera.clearColor.set(...sceneGeneric.background); ,= doesn't work
+    //camera.camera.clearColor.set(...sceneGeneric.background); <= doesn't work
     camera.camera.clearColor = new pc.Color(...sceneGeneric.background);
+    app.scene.ambientLight = new pc.Color(...sceneGeneric.ambient);
+
+    camera.setPosition(...sceneGeneric.cameraPos);
 
     var meshes = sceneGeneric.meshes;
     for (var i = 0; i < meshes.length; i++) {
@@ -128,15 +129,7 @@ function makePlayCanvasController(sceneGeneric) {
     return null;//camera.position;
   };
 
-  //function updateScene(sceneState) {
-  //  camera.position.x=sceneState.x;
-  //  camera.position.y=sceneState.y;
-  //  camera.position.z=sceneState.z;
-  //  //camera.matrixWorldNeedsUpdate = true;
-  //  //camera.updateMatrixWorld();
-  //}
-
-  //var defaultMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
+  var defaultMaterial = new pc.StandardMaterial();
   function add(item) {
     var type = item.type;
     if (type in geometryTypes) {
@@ -146,12 +139,12 @@ function makePlayCanvasController(sceneGeneric) {
       //});
 
       //app.root.addChild(mesh1);
+      //mesh1.cb_tag = type + "mesh1";
 
 
       var node = new pc.GraphNode();
       var mesh = geometryTypes[type](app.graphicsDevice, geometryDefaults[type]);
-      var material = new pc.StandardMaterial();
-      var meshInstance = new pc.MeshInstance(node, mesh, material);
+      var meshInstance = new pc.MeshInstance(node, mesh, defaultMaterial);
       var model = new pc.Model();
       model.graph = node;
       model.meshInstances = [meshInstance];
@@ -159,17 +152,25 @@ function makePlayCanvasController(sceneGeneric) {
       app.scene.addModel(model);
 
 
-      mesh.cb_tag = type + "mesh";
+      model.cb_tag = type + "mesh";
+
+      entities.push(model);
 
       return mesh.id;
     }
 
     if (type in lightTypes) {
       var light = new pc.Entity('light');
-      light.addComponent('light');
+      light.addComponent('light', {
+        type: type,
+        color: new pc.Color(...lightDefaults[type]),
+        //range: 10
+      });
       app.root.addChild(light);
 
       light.cb_tag = type + "light";
+
+      entities.push(light);
 
       return light.id;
     }
@@ -191,7 +192,6 @@ function makePlayCanvasController(sceneGeneric) {
     clearAll: clearAll,
     getScene: getScene,
     setScene: setScene,
-    //updateScene: updateScene,
     render: render,
     add: add,
     display: display,

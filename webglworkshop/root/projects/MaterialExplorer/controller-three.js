@@ -64,6 +64,8 @@ function makeThreeController(sceneGeneric) {
   function getScene() {
     var sceneGeneric = makeScene();
 
+    sceneGeneric.cameraPos = camera.position.toArray();
+
     for (var i = 0; i < scene.children.length; i++) {
       var item = scene.children[i];
       var type = item.cb_tag;//item.type.toLowerCase();
@@ -99,6 +101,7 @@ function makeThreeController(sceneGeneric) {
   function setScene(sceneGeneric) {
     renderer.setClearColor(new THREE.Color(...sceneGeneric.background));
     ambientLight.color = new THREE.Color(...sceneGeneric.ambient);
+    camera.position.set(...sceneGeneric.cameraPos);
 
     var meshes = sceneGeneric.meshes;
     for (var i = 0; i < meshes.length; i++) {
@@ -127,15 +130,6 @@ function makeThreeController(sceneGeneric) {
     //lightControl.update();
     //targetControl.update();
   };
-
-  //function updateScene(sceneState) {
-  //  camera.position.x=sceneState.x;
-  //  camera.position.y=sceneState.y;
-  //  camera.position.z=sceneState.z;
-  //  //camera.matrixWorldNeedsUpdate = true;
-  //  //camera.updateMatrixWorld();
-  //}
-
 
   var defaultMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
   function add(item) {
@@ -182,7 +176,6 @@ function makeThreeController(sceneGeneric) {
     clearAll: clearAll,
     getScene: getScene,
     setScene: setScene,
-    //updateScene: updateScene,
     render: render,
     add: add,
     display: display,
