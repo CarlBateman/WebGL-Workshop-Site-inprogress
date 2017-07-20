@@ -8,7 +8,15 @@ function makeScene() {
     lights: [],
     meshes: [],
 
-    cameraPos: [0, 0, 10],
+    cameraFOV: 45,
+    cameraPos: [0, 0, 150],
+    cameraRot: [0, 0, 0], // quat 
+    camWorldMatrix : [
+    1,0,0,0,
+    0,1,0,0,
+    0,0,1,0,
+    0,0,0,1,
+    ],
   }
 }
 

@@ -27,12 +27,14 @@ function makeThreeController(sceneGeneric) {
   geometryTypes["torus"] = THREE.TorusBufferGeometry;
   geometryTypes["sphere"] = THREE.SphereBufferGeometry;
   geometryTypes["cylinder"] = THREE.CylinderBufferGeometry;
+  geometryTypes["cone"] = THREE.ConeBufferGeometry;
 
   var geometryDefaults = [];
-  geometryDefaults["box"] = [5, 5, 5];
-  geometryDefaults["torus"] = [2.5, 0.25, 16, 64];
-  geometryDefaults["sphere"] = [ ];
-  geometryDefaults["cylinder"] = [ ];
+  geometryDefaults["box"] = [20, 20, 20];
+  geometryDefaults["torus"] = [25, 2.5, 8, 64];
+  geometryDefaults["sphere"] = [10,18,32];
+  geometryDefaults["cylinder"] = [10, 10, 30, 16];
+  geometryDefaults["cone"] = [10, 30, 16];
 
   function init() {
     renderer = new THREE.WebGLRenderer({ alpha: true });
@@ -65,10 +67,11 @@ function makeThreeController(sceneGeneric) {
     var sceneGeneric = makeScene();
 
     sceneGeneric.cameraPos = camera.position.toArray();
+    sceneGeneric.cameraRot = camera.rotation.toArray();
 
     for (var i = 0; i < scene.children.length; i++) {
       var item = scene.children[i];
-      var type = item.cb_tag;//item.type.toLowerCase();
+      var type = item.cb_tag;
 
       if (type === "ignore") continue;
 
@@ -78,7 +81,7 @@ function makeThreeController(sceneGeneric) {
         } else {
           var light = makeLight();
           light.type = type.replace("light", "");
-          light.position = item.position;
+          light.position = item.position.toArray();
           light.direction = type === "spotlight" ? item.target.position : item.target.position;
 
           sceneGeneric.lights.push(light);
@@ -86,7 +89,8 @@ function makeThreeController(sceneGeneric) {
       } else if (type.includes("mesh")) {
         var mesh = makeMesh();
         var geometry = item.geometry;
-        mesh.type = item.cb_tag.replace("mesh", "");;//geometry.type.toLowerCase().replace("geometry", "").replace("buffer", "");
+        mesh.type = item.cb_tag.replace("mesh", "");
+        mesh.position = item.position.toArray();
         
         var material = makeMaterial();
 
@@ -102,6 +106,10 @@ function makeThreeController(sceneGeneric) {
     renderer.setClearColor(new THREE.Color(...sceneGeneric.background));
     ambientLight.color = new THREE.Color(...sceneGeneric.ambient);
     camera.position.set(...sceneGeneric.cameraPos);
+    camera.rotation.set(...sceneGeneric.cameraRot);
+
+    camera.fov = sceneGeneric.cameraFOV;
+    camera.updateProjectionMatrix();
 
     var meshes = sceneGeneric.meshes;
     for (var i = 0; i < meshes.length; i++) {
@@ -115,17 +123,8 @@ function makeThreeController(sceneGeneric) {
   }
 
   function render() {
-    //requestAnimationFrame(render);
     renderer.render(scene, camera);
     controls.update();
-    //console.log(camera.position);
-    //console.log(camera.getWorldPosition());
-    //console.log(camera.getWorldDirection());
-
-    //console.log(camera.setRotationFromMatrix);
-    //console.log(camera.matrixWorld);
-
-    return camera.position;
 
     //lightControl.update();
     //targetControl.update();
@@ -136,6 +135,7 @@ function makeThreeController(sceneGeneric) {
     var type = item.type;
     if (type in geometryTypes) {
       var mesh = new THREE.Mesh(new geometryTypes[type](...geometryDefaults[type]), defaultMaterial);
+      mesh.position.set(...item.position);
       scene.add(mesh);
 
       mesh.cb_tag = type + "mesh";

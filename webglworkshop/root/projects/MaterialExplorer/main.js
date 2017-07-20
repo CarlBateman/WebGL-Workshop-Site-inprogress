@@ -22,12 +22,37 @@ function main() {
   mesh.type = "torus";
   scene.meshes.push(mesh);
 
-  console.log("initial");
-  console.log(scene);
+  var offset = 35;
+
+  var mesh = makeMesh();
+  mesh.type = "box";
+  mesh.position[0] = offset;
+  mesh.position[1] = -offset;
+  scene.meshes.push(mesh);
+
+  var mesh = makeMesh();
+  mesh.type = "cone";
+  mesh.position[0] = -offset;
+  mesh.position[1] = -offset;
+  scene.meshes.push(mesh);
+
+  var mesh = makeMesh();
+  mesh.type = "cylinder";
+  mesh.position[0] = offset;
+  mesh.position[1] = offset;
+  scene.meshes.push(mesh);
+
+  var mesh = makeMesh();
+  mesh.type = "sphere";
+  mesh.position[0] = -offset;
+  mesh.position[1] = offset;
+  scene.meshes.push(mesh);
+
+  //console.log("initial");
+  //console.log(scene);
 
   var controllers = [];
   controllers["Babylon.js"] = makeBabylonController(scene);
-  //controllers["Babylon.js"].setScene(scene);
   controllers["Three.js"] = makeThreeController(scene);
   controllers["PlayCanvas.js"] = makePlayCanvasController(scene);
 
@@ -40,7 +65,6 @@ function main() {
   adapter.setEngine("PlayCanvas.js");
 
   optionsController.initialise();
-  //optionsController.setEngine = adapter.setEngine;
   optionsController.adapter = adapter;
 
   (function render() {

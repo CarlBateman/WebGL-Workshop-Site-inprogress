@@ -28,14 +28,15 @@ function makePlayCanvasController(sceneGeneric) {
   geometryTypes["torus"] = pc.createTorus;
   geometryTypes["sphere"] = pc.createSphere;
   geometryTypes["cylinder"] = pc.createCylinder;
+  geometryTypes["cone"] = pc.createCone;
 
   var geometryDefaults = [];
-  geometryDefaults["box"] = { halfExtents: [2.5, 2.5, 2.5] };
-  geometryDefaults["torus"] = { tubeRadius: .25, ringRadius: 2.5, segments: 64 };
-  geometryDefaults["sphere"] = { radius: 1, segments: 16 };
-  geometryDefaults["cylinder"] = { radius: 1, height: 3, capSegments: 16 };
-  geometryDefaults["capsule"] = { radius: 1, height: 3, side: 16 };
-  geometryDefaults["cone"] = { baseRadius: 1, peakRadius: 0, capSegments: 16 };
+  geometryDefaults["box"] = { halfExtents: new pc.Vec3(10, 10, 10) };
+  geometryDefaults["torus"] = { tubeRadius: 2.5, ringRadius: 25, segments: 64 };
+  geometryDefaults["sphere"] = { radius: 10, segments: 16 };
+  geometryDefaults["capsule"] = { radius: 10, height: 30, side: 16 };
+  geometryDefaults["cylinder"] = { baseRadius: 10, height: 30, capSegments: 16 };
+  geometryDefaults["cone"] = { baseRadius: 10, peakRadius: 0, height: 30, capSegments: 16 };
 
   function init() {
     glCanvas = document.createElement("canvas");
@@ -48,23 +49,18 @@ function makePlayCanvasController(sceneGeneric) {
     app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
     app.setCanvasResolution(pc.RESOLUTION_AUTO);
 
-    //renderer.setSize(glCanvas.clientWidth, glCanvas.clientHeight);
-    //renderer.setClearColor(0xEEEEEE, 1);
-
     camera = new pc.Entity('camera');
     camera.addComponent('camera', {
       fov: 74,
       clearColor: new pc.Color(0.1, 0.1, 0.1)
     });
-    camera.setPosition(0, 0, 10);
     app.root.addChild(camera);
   }
 
   function clearAll() {
-    //while (scene.children.length > 0) {
-    //  scene.remove(scene.children[0]);
-    //}
-    //scene.add(ambientLight);
+    while (entities.length > 0) {
+      entities.pop().destroy();
+    }
   }
 
   function getScene() {
@@ -72,18 +68,20 @@ function makePlayCanvasController(sceneGeneric) {
     sceneGeneric.ambient = app.scene.ambientLight.data;
 
     sceneGeneric.cameraPos = camera.position.data;// [0,0,10];
+    var t = camera.rotation.getEulerAngles();
+    sceneGeneric.cameraRot = [t.x, t.y, t.z];
 
 
     for (var i = 0; i < entities.length; i++) {
       var item = entities[i];
-      var type = item.cb_tag;//item.type.toLowerCase();
+      var type = item.cb_tag;
 
       if (type === "ignore") continue;
 
       if (type.includes("light")) {
         var light = makeLight();
         light.type = type.replace("light", "");
-        light.position = item.position;
+        light.position = [...item.localPosition.data];
         //light.direction = type === "spotlight" ? item.target.position : item.target.position;
 
         sceneGeneric.lights.push(light);
@@ -92,8 +90,9 @@ function makePlayCanvasController(sceneGeneric) {
       if (type.includes("mesh")) {
         var mesh = makeMesh();
         var geometry = item.geometry;
-        mesh.type = item.cb_tag.replace("mesh", "");;//geometry.type.toLowerCase().replace("geometry", "").replace("buffer", "");
+        mesh.type = item.cb_tag.replace("mesh", "");
         
+        mesh.position = [...item.localPosition.data];
         var material = makeMaterial();
 
         sceneGeneric.meshes.push(mesh);
@@ -105,11 +104,12 @@ function makePlayCanvasController(sceneGeneric) {
   }
 
   function setScene(sceneGeneric) {
-    //camera.camera.clearColor.set(...sceneGeneric.background); <= doesn't work
     camera.camera.clearColor = new pc.Color(...sceneGeneric.background);
     app.scene.ambientLight = new pc.Color(...sceneGeneric.ambient);
 
+    camera.camera.fov = sceneGeneric.cameraFOV;
     camera.setPosition(...sceneGeneric.cameraPos);
+    camera.setLocalEulerAngles(...sceneGeneric.cameraRot);
 
     var meshes = sceneGeneric.meshes;
     for (var i = 0; i < meshes.length; i++) {
@@ -124,37 +124,36 @@ function makePlayCanvasController(sceneGeneric) {
 
   function render() {
     app.render();
-    //controls.update();
-
-    return null;//camera.position;
   };
 
   var defaultMaterial = new pc.StandardMaterial();
   function add(item) {
     var type = item.type;
     if (type in geometryTypes) {
-      //var mesh1 = new pc.Entity('cube');
-      //mesh1.addComponent('model', {
-      //  type: 'box'//type
-      //});
+      var mesh1 = new pc.Entity('cube');
+      mesh1.addComponent('model', {
+        type: 'box'//type
+      });
 
-      //app.root.addChild(mesh1);
-      //mesh1.cb_tag = type + "mesh1";
+      mesh1.cb_tag = type + "mesh";
 
 
       var node = new pc.GraphNode();
       var mesh = geometryTypes[type](app.graphicsDevice, geometryDefaults[type]);
-      var meshInstance = new pc.MeshInstance(node, mesh, defaultMaterial);
-      var model = new pc.Model();
-      model.graph = node;
-      model.meshInstances = [meshInstance];
+      //var meshInstance = new pc.MeshInstance(node, mesh, defaultMaterial);
+      var meshInstance = new pc.MeshInstance(mesh1.model.meshInstances[0].node, mesh, defaultMaterial);
 
-      app.scene.addModel(model);
+      mesh1.model.meshInstances = [meshInstance];
+      //var model = new pc.Model();
+      //model.graph = node;
+      //model.meshInstances = [meshInstance];
+      //model.graph.setLocalPosition(...item.position);
 
+      //app.scene.addModel(model);
+      mesh1.setLocalPosition(...item.position);
+      app.root.addChild(mesh1);
 
-      model.cb_tag = type + "mesh";
-
-      entities.push(model);
+      entities.push(mesh1);
 
       return mesh.id;
     }

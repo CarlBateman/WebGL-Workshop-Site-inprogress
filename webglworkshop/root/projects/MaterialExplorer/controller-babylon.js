@@ -25,12 +25,14 @@ function makeBabylonController(sceneGeneric) {
   geometryTypes["torus"] = BABYLON.MeshBuilder.CreateTorus;
   geometryTypes["sphere"] = BABYLON.MeshBuilder.CreateSphere;
   geometryTypes["cylinder"] = BABYLON.MeshBuilder.CreateCylinder;
+  geometryTypes["cone"] = BABYLON.MeshBuilder.CreateCylinder;
 
   var geometryDefaults = [];
-  geometryDefaults["box"] = {size: 5};
-  geometryDefaults["torus"] = { diameter: 5, thickness: .5, tessellation: 64 };
-  geometryDefaults["sphere"] = {};
-  geometryDefaults["cylinder"] = {};
+  geometryDefaults["box"] = {size: 20};
+  geometryDefaults["torus"] = { diameter: 50, thickness: 5, tessellation: 64 };
+  geometryDefaults["sphere"] = { diameter: 20 };
+  geometryDefaults["cylinder"] = { height: 30, tessellation: 16, diameterTop: 20, diameterBottom: 20 };
+  geometryDefaults["cone"] = { height: 30, tessellation : 16,diameterTop: 0, diameterBottom : 20 };
 
   function init() {
     glCanvas = document.createElement("canvas");
@@ -43,6 +45,7 @@ function makeBabylonController(sceneGeneric) {
     scene = new BABYLON.Scene(engine);
 
     camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 0, new BABYLON.Vector3.Zero(), scene);
+    camera.inertia = 0.7;
     camera.fov = 1.309;
     camera.setPosition(new BABYLON.Vector3(0, 0, 10));
 
@@ -63,10 +66,11 @@ function makeBabylonController(sceneGeneric) {
     sceneGeneric.ambient = scene.ambientColor.asArray();
 
     sceneGeneric.cameraPos = camera.position.asArray();
+    sceneGeneric.cameraRot = camera.rotation.asArray();
 
     for (var i = 0; i < scene.lights.length; i++) {
       var item = scene.lights[i];
-      var type = item.cb_tag;// scene.lights[0].__proto__.constructor.name.toLowerCase();// item.type.toLowerCase();
+      var type = item.cb_tag;
 
       var light = makeLight();
       light.type = type;//.replace("light", "");
@@ -82,7 +86,8 @@ function makeBabylonController(sceneGeneric) {
 
       var mesh = makeMesh();
       var geometry = item.geometry;
-      mesh.type = type;//geometry.type.toLowerCase().replace("mesh", "");
+      mesh.type = type;
+      mesh.position = item.position.asArray();
 
       var material = makeMaterial();
 
@@ -97,6 +102,9 @@ function makeBabylonController(sceneGeneric) {
     scene.clearColor = new BABYLON.Color3(...sceneGeneric.background);
     scene.ambientColor = new BABYLON.Color3(...sceneGeneric.ambient);
     camera.setPosition(new BABYLON.Vector3(...sceneGeneric.cameraPos));
+    camera.rotation = (new BABYLON.Vector3(...sceneGeneric.cameraRot));
+
+    camera.fov = sceneGeneric.cameraFOV * Math.PI / 180;
 
     var meshes = sceneGeneric.meshes;
     for (var i = 0; i < meshes.length; i++) {
@@ -124,8 +132,6 @@ function makeBabylonController(sceneGeneric) {
 
   function render() {
     scene.render();
-
-    return camera.position;
   }
 
   function add(item) {
@@ -136,6 +142,7 @@ function makeBabylonController(sceneGeneric) {
       var mesh = geometryTypes[type].bind(BABYLON.MeshBuilder)(type + "mesh", geometryDefaults[type], scene);
       // or
       // var mesh = BABYLON.MeshBuilder["CreateTorus"]("torus", { thickness: 0.2 }, scene);
+      mesh.position = new BABYLON.Vector3(...item.position);
 
       mesh.material = new BABYLON.StandardMaterial("texture1", scene);
       mesh.material.ambientColor = mesh.material.diffuseColor.clone();
