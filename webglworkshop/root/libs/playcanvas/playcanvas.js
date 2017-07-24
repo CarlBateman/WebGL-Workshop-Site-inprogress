@@ -16083,15 +16083,26 @@ pc._createConeData = function(baseRadius, peakRadius, height, heightSegments, ca
   return {positions:positions, normals:normals, uvs:uvs, uvs1:uvs1, indices:indices};
 };
 pc.createCylinder = function(device, opts) {
-  var baseRadius = opts && opts.baseRadius !== undefined ? opts.baseRadius : 0.5;
-  var height = opts && opts.height !== undefined ? opts.height : 1.0;
-  var heightSegments = opts && opts.heightSegments !== undefined ? opts.heightSegments : 5;
-  var capSegments = opts && opts.capSegments !== undefined ? opts.capSegments : 20;
-  var options = pc._createConeData(baseRadius, baseRadius, height, heightSegments, capSegments, false);
-  if (pc.precalculatedTangents) {
-    options.tangents = pc.calculateTangents(options.positions, options.normals, options.uvs, options.indices);
-  }
-  return pc.createMesh(device, options.positions, options);
+    // Check the supplied options and provide defaults for unspecified ones
+    // #ifdef DEBUG
+    if (opts && opts.hasOwnProperty('baseRadius') && !opts.hasOwnProperty('radius'))
+      console.warn('DEPRECATED: "baseRadius" in arguments, use "radius" instead');
+    // #endif
+
+    var radius = opts && (opts.radius || opts.baseRadius);
+    radius = radius !== undefined ? radius : 0.5;
+    var height = opts && opts.height !== undefined ? opts.height : 1.0;
+    var heightSegments = opts && opts.heightSegments !== undefined ? opts.heightSegments : 5;
+    var capSegments = opts && opts.capSegments !== undefined ? opts.capSegments : 20;
+
+    // Create vertex data for a cone that has a base and peak radius that is the same (i.e. a cylinder)
+    var options = pc._createConeData(radius, radius, height, heightSegments, capSegments, false);
+
+    if (pc.precalculatedTangents) {
+        options.tangents = pc.calculateTangents(options.positions, options.normals, options.uvs, options.indices);
+    }
+
+    return pc.createMesh(device, options.positions, options);
 };
 pc.createCapsule = function(device, opts) {
   var radius = opts && opts.radius !== undefined ? opts.radius : 0.3;
