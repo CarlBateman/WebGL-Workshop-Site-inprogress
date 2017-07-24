@@ -80,16 +80,18 @@ OrbitCameraInputMouse.prototype.pan = function(screenPoint) {
 
 
 OrbitCameraInputMouse.prototype.onMouseDown = function (event) {
+  if (event.event.target.id === "playCanvas" || event.event.srcElement.id === "playCanvas") {
     switch (event.button) {
-        case pc.MOUSEBUTTON_LEFT: {
-            this.lookButtonDown = true;
-        } break;
+      case pc.MOUSEBUTTON_LEFT: {
+        this.lookButtonDown = true;
+      } break;
 
-        case pc.MOUSEBUTTON_MIDDLE:
-        case pc.MOUSEBUTTON_RIGHT: {
-            this.panButtonDown = true;
-        } break;
+      case pc.MOUSEBUTTON_MIDDLE:
+      case pc.MOUSEBUTTON_RIGHT: {
+        this.panButtonDown = true;
+      } break;
     }
+  }
 };
 
 
