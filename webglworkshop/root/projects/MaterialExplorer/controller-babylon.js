@@ -67,7 +67,9 @@ function makeBabylonController(sceneGeneric) {
     sceneGeneric.cameraRot = camera.rotation.asArray();
     sceneGeneric.cameraPos = camera.position.asArray();
     sceneGeneric.cameraTarget = camera.target.asArray();
-    //sceneGeneric.cameraTarget[0] *= -1;
+
+    sceneGeneric.cameraPos[2] *= -1;
+    sceneGeneric.cameraTarget[2] *= -1;
 
     for (var i = 0; i < scene.lights.length; i++) {
       var item = scene.lights[i];
@@ -104,11 +106,11 @@ function makeBabylonController(sceneGeneric) {
     scene.clearColor = new BABYLON.Color3(...sceneGeneric.background);
     scene.ambientColor = new BABYLON.Color3(...sceneGeneric.ambient);
 
-    camera.rotation = (new BABYLON.Vector3(...sceneGeneric.cameraRot));
+    sceneGeneric.cameraPos[2] *= -1;
+    sceneGeneric.cameraTarget[2] *= -1;
+
     camera.setPosition(new BABYLON.Vector3(...sceneGeneric.cameraPos));
-    //camera.position.x *= -1;
     camera.setTarget(new BABYLON.Vector3(...sceneGeneric.cameraTarget));
-    //camera.target.x *= -1;
 
     camera.fov = sceneGeneric.cameraFOV * Math.PI / 180;
 
