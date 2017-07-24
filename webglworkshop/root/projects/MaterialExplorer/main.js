@@ -15,14 +15,14 @@ function main() {
   // set up a "default" scene
   var light = makeLight();
   light.type = "spot";
-  light.position = [0,1,0];
+  light.position = [0, 100, 0];
   scene.lights.push(light);
+
+  var offset = 35;
 
   var mesh = makeMesh();
   mesh.type = "torus";
   scene.meshes.push(mesh);
-
-  var offset = 35;
 
   var mesh = makeMesh();
   mesh.type = "box";
@@ -37,19 +37,16 @@ function main() {
   scene.meshes.push(mesh);
 
   var mesh = makeMesh();
-  mesh.type = "cylinder";
-  mesh.position[0] = offset;
-  mesh.position[1] = offset;
-  scene.meshes.push(mesh);
-
-  var mesh = makeMesh();
   mesh.type = "sphere";
   mesh.position[0] = -offset;
   mesh.position[1] = offset;
   scene.meshes.push(mesh);
 
-  //console.log("initial");
-  //console.log(scene);
+  var mesh = makeMesh();
+  mesh.type = "cylinder";
+  mesh.position[0] = offset;
+  mesh.position[1] = offset;
+  scene.meshes.push(mesh);
 
   var controllers = [];
   controllers["Babylon.js"] = makeBabylonController(scene);
