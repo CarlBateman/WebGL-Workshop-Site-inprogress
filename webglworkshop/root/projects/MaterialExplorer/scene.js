@@ -10,7 +10,8 @@ function makeScene() {
 
     cameraFOV: 45,
     cameraPos: [0, 0, 150],
-    cameraRot: [0, 0, 0], // quat 
+    cameraRot: [0, 0, 0],
+    cameraTarget: [0,0,0],
     camWorldMatrix : [
     1,0,0,0,
     0,1,0,0,
