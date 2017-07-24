@@ -66,8 +66,15 @@ function makeThreeController(sceneGeneric) {
   function getScene() {
     var sceneGeneric = makeScene();
 
-    sceneGeneric.cameraPos = camera.position.toArray();
     sceneGeneric.cameraRot = camera.rotation.toArray();
+    sceneGeneric.cameraRot.pop();
+
+    sceneGeneric.cameraPos = camera.position.toArray();
+
+    sceneGeneric.cameraTarget[0] = controls.target.x;
+    sceneGeneric.cameraTarget[1] = controls.target.y;
+    sceneGeneric.cameraTarget[2] = controls.target.z;
+
 
     for (var i = 0; i < scene.children.length; i++) {
       var item = scene.children[i];
@@ -108,6 +115,10 @@ function makeThreeController(sceneGeneric) {
     camera.position.set(...sceneGeneric.cameraPos);
     camera.rotation.set(...sceneGeneric.cameraRot);
 
+    controls.target.x = sceneGeneric.cameraTarget[0];
+    controls.target.y = sceneGeneric.cameraTarget[1];
+    controls.target.z = sceneGeneric.cameraTarget[2];
+
     camera.fov = sceneGeneric.cameraFOV;
     camera.updateProjectionMatrix();
 
@@ -145,6 +156,7 @@ function makeThreeController(sceneGeneric) {
 
     if (type in lightTypes) {
       var light = new lightTypes[type](...lightDefaults[type]);
+      light.position.set(...item.position);
       scene.add(light);
 
       light.cb_tag = type + "light";

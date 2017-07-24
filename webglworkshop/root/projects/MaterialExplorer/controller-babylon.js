@@ -45,7 +45,6 @@ function makeBabylonController(sceneGeneric) {
     scene = new BABYLON.Scene(engine);
 
     camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 0, new BABYLON.Vector3.Zero(), scene);
-    camera.inertia = 0.7;
     camera.fov = 1.309;
     camera.setPosition(new BABYLON.Vector3(0, 0, 10));
 
@@ -65,8 +64,10 @@ function makeBabylonController(sceneGeneric) {
     var sceneGeneric = makeScene();
     sceneGeneric.ambient = scene.ambientColor.asArray();
 
-    sceneGeneric.cameraPos = camera.position.asArray();
     sceneGeneric.cameraRot = camera.rotation.asArray();
+    sceneGeneric.cameraPos = camera.position.asArray();
+    sceneGeneric.cameraTarget = camera.target.asArray();
+    //sceneGeneric.cameraTarget[0] *= -1;
 
     for (var i = 0; i < scene.lights.length; i++) {
       var item = scene.lights[i];
@@ -88,6 +89,7 @@ function makeBabylonController(sceneGeneric) {
       var geometry = item.geometry;
       mesh.type = type;
       mesh.position = item.position.asArray();
+      //mesh.position[0] *= -1;
 
       var material = makeMaterial();
 
@@ -101,8 +103,12 @@ function makeBabylonController(sceneGeneric) {
   function setScene(sceneGeneric) {
     scene.clearColor = new BABYLON.Color3(...sceneGeneric.background);
     scene.ambientColor = new BABYLON.Color3(...sceneGeneric.ambient);
-    camera.setPosition(new BABYLON.Vector3(...sceneGeneric.cameraPos));
+
     camera.rotation = (new BABYLON.Vector3(...sceneGeneric.cameraRot));
+    camera.setPosition(new BABYLON.Vector3(...sceneGeneric.cameraPos));
+    //camera.position.x *= -1;
+    camera.setTarget(new BABYLON.Vector3(...sceneGeneric.cameraTarget));
+    //camera.target.x *= -1;
 
     camera.fov = sceneGeneric.cameraFOV * Math.PI / 180;
 
@@ -143,6 +149,7 @@ function makeBabylonController(sceneGeneric) {
       // or
       // var mesh = BABYLON.MeshBuilder["CreateTorus"]("torus", { thickness: 0.2 }, scene);
       mesh.position = new BABYLON.Vector3(...item.position);
+      //mesh.position.x *= -1;
 
       mesh.material = new BABYLON.StandardMaterial("texture1", scene);
       mesh.material.ambientColor = mesh.material.diffuseColor.clone();
@@ -155,6 +162,7 @@ function makeBabylonController(sceneGeneric) {
     if (type in lightTypes) {
       var light = new lightTypes[type](type + "light", ...lightDefaults[type], scene);
 
+      light.position = new BABYLON.Vector3(...item.position);
       light.cb_tag = type;
 
       return light.id;

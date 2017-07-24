@@ -35,7 +35,7 @@ function makePlayCanvasController(sceneGeneric) {
   geometryDefaults["torus"] = { tubeRadius: 2.5, ringRadius: 25, segments: 64 };
   geometryDefaults["sphere"] = { radius: 10, segments: 16 };
   geometryDefaults["capsule"] = { radius: 10, height: 30, side: 16 };
-  geometryDefaults["cylinder"] = { baseRadius: 10, height: 30, capSegments: 16 };
+  geometryDefaults["cylinder"] = { baseRadius: 10, radius: 10, height: 30, capSegments: 16 };
   geometryDefaults["cone"] = { baseRadius: 10, peakRadius: 0, height: 30, capSegments: 16 };
 
   function init() {
@@ -43,7 +43,9 @@ function makePlayCanvasController(sceneGeneric) {
     glCanvas.id = "playCanvas";
     document.getElementById("view").insertBefore(glCanvas, document.getElementById("view").firstChild);
 
-    app = new pc.Application(glCanvas, {});
+    app = new pc.Application(glCanvas, {
+      mouse: new pc.Mouse(glCanvas),
+    });
     app.start();
 
     app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
@@ -54,7 +56,17 @@ function makePlayCanvasController(sceneGeneric) {
       fov: 74,
       clearColor: new pc.Color(0.1, 0.1, 0.1)
     });
-    app.root.addChild(camera);
+
+    app.assets.loadFromUrl('orbit-camera-input-mouse.js', 'script', function (err, asset) {
+      camera.addComponent('script');
+      camera.script.create('orbitCameraInputMouse');
+
+      app.assets.loadFromUrl('orbitcamera.js', 'script', function (err, asset) {
+        camera.script.create('orbitCamera');
+        camera.script.orbitCamera.frameOnStart = false;
+        app.root.addChild(camera);
+      });
+    });
   }
 
   function clearAll() {
@@ -71,6 +83,9 @@ function makePlayCanvasController(sceneGeneric) {
     var t = camera.rotation.getEulerAngles();
     sceneGeneric.cameraRot = [t.x, t.y, t.z];
 
+    sceneGeneric.cameraTarget[0] = camera.script.orbitCamera.pivotPoint.x;
+    sceneGeneric.cameraTarget[1] = camera.script.orbitCamera.pivotPoint.y;
+    sceneGeneric.cameraTarget[2] = camera.script.orbitCamera.pivotPoint.z;
 
     for (var i = 0; i < entities.length; i++) {
       var item = entities[i];
@@ -108,8 +123,25 @@ function makePlayCanvasController(sceneGeneric) {
     app.scene.ambientLight = new pc.Color(...sceneGeneric.ambient);
 
     camera.camera.fov = sceneGeneric.cameraFOV;
-    camera.setPosition(...sceneGeneric.cameraPos);
-    camera.setLocalEulerAngles(...sceneGeneric.cameraRot);
+
+    if (camera.script)
+      if (camera.script.orbitCamera) {
+        var cameraQuat = new pc.Quat();
+        cameraQuat.setFromEulerAngles(...sceneGeneric.cameraRot);
+        var yaw = camera.script.orbitCamera._calcYaw(cameraQuat);
+        var pitch = camera.script.orbitCamera._calcPitch(cameraQuat, yaw);
+
+        camera.script.orbitCamera.pitch = pitch;//sceneGeneric.cameraRot[0];
+        camera.script.orbitCamera.yaw = yaw;//sceneGeneric.cameraRot[2];
+        camera.script.orbitCamera._removeInertia();
+
+        camera.script.orbitCamera.pivotPoint.x = sceneGeneric.cameraTarget[0];
+        camera.script.orbitCamera.pivotPoint.y = sceneGeneric.cameraTarget[1];
+        camera.script.orbitCamera.pivotPoint.z = sceneGeneric.cameraTarget[2];
+      }
+
+    //camera.setEulerAngles(...sceneGeneric.cameraRot);
+    camera.setLocalPosition(...sceneGeneric.cameraPos);
 
     var meshes = sceneGeneric.meshes;
     for (var i = 0; i < meshes.length; i++) {
@@ -137,19 +169,12 @@ function makePlayCanvasController(sceneGeneric) {
 
       mesh1.cb_tag = type + "mesh";
 
-
       var node = new pc.GraphNode();
       var mesh = geometryTypes[type](app.graphicsDevice, geometryDefaults[type]);
-      //var meshInstance = new pc.MeshInstance(node, mesh, defaultMaterial);
       var meshInstance = new pc.MeshInstance(mesh1.model.meshInstances[0].node, mesh, defaultMaterial);
 
       mesh1.model.meshInstances = [meshInstance];
-      //var model = new pc.Model();
-      //model.graph = node;
-      //model.meshInstances = [meshInstance];
-      //model.graph.setLocalPosition(...item.position);
 
-      //app.scene.addModel(model);
       mesh1.setLocalPosition(...item.position);
       app.root.addChild(mesh1);
 
@@ -163,8 +188,10 @@ function makePlayCanvasController(sceneGeneric) {
       light.addComponent('light', {
         type: type,
         color: new pc.Color(...lightDefaults[type]),
-        //range: 10
+        range: 200,
+        intensity: 2,
       });
+      light.setLocalPosition(...item.position);
       app.root.addChild(light);
 
       light.cb_tag = type + "light";
@@ -180,7 +207,11 @@ function makePlayCanvasController(sceneGeneric) {
 
   function remove(id) { }
   function replace(id, type) { }
-  function display(value) { glCanvas.style.display = value; }
+  function display(value) {
+    app.timeScale = value==="none"?0:1;
+    app.autoRender = (value!=="none");
+    glCanvas.style.display = value;
+  }
 
   init();
   if (sceneGeneric)
