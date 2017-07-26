@@ -1,0 +1,52 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+	<meta charset="utf-8" />
+  <script>
+    function makeObj() {
+      var a = 1;
+      this.b = 2; // this is window!!!
+
+      return {
+        getA: function () { return a; },
+        getB: function () { return this.b; },
+        getTHIS : function() { return this; }
+    };
+    }
+
+    var Obj = function () {
+      var a = 1;
+      this.b = 2;
+
+      this.getA = function () { return a; };
+      this.getB = function () { return this.b; };
+      this.getTHIS = function () { return this; };
+    }
+
+    var o1 = makeObj();
+    var o2 = new Obj();
+
+    console.log("o1");
+    console.log(o1);
+    console.log("o1.getTHIS()", o1.getTHIS());
+    //console.log("o1.getA()", o1.getA());
+    //console.log("o1.getB()", o1.getB());
+    //console.log("o1.a", o1.a);
+    //console.log("o1.b", o1.b);
+
+    console.log("");
+
+    console.log("o2");
+    console.log(o2);
+    console.log("o2.getTHIS()", o2.getTHIS());
+    //console.log("o2.getA()", o2.getA());
+    //console.log("o2.getB()", o2.getB());
+    //console.log("o2.a", o2.a);
+    //console.log("o2.b", o2.b);
+  </script>
+</head>
+<body>
+
+</body>
+</html>
