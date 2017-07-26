@@ -213,7 +213,7 @@ function main() {
     var transformControl = new THREE.TransformControls(camera, renderer.domElement);
     scene.add(transformControl);
 
-    var gui, param = { color: '0xffffff' };;
+    var gui, param = { color: '0xffffff' };
     buildGui();
     function buildGui() {
       clearGui();
