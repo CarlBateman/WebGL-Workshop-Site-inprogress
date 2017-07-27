@@ -3,7 +3,7 @@
 function makeScene() {
   return {
     background: [0.4, 0.7, 1],
-    ambient: [0, 0, 1],
+    ambient: [0, 0, 0.25],
     skybox: "",
     lights: [],
     meshes: [],
@@ -11,13 +11,7 @@ function makeScene() {
     cameraFOV: 45,
     cameraPos: [0, 0, 150],
     cameraRot: [0, 0, 0],
-    cameraTarget: [0,0,0],
-    camWorldMatrix : [
-    1,0,0,0,
-    0,1,0,0,
-    0,0,1,0,
-    0,0,0,1,
-    ],
+    cameraTarget: [0, 0, 0],
   }
 }
 
@@ -52,16 +46,3 @@ function makeMaterial() {
     specular: [1, 1, 1, 1],
   }
 }
-
-/*
-"scene" : {
-  "spot" : {
-    "position" : [1,1,1],  
-    "colour" : [1,1,1],  
-  } }
-  "torus" : {
-    "position" : [1,1,1],  
-    "colour" : [1,1,1],  
-  } }
-} }
- */
