@@ -9,8 +9,6 @@ var optionsController = {
 
   gui: new dat.GUI({ autoPlace: false, /*width: 30, closeOnTop: true */ }),
 
-  //setEngine: function () { },
-
   adapter: null,
 
   initialise: function (adapter) {
@@ -27,15 +25,23 @@ var optionsController = {
       adapter.setScene(scene);
     });
 
+    //var obj = { "Reset camera": function () { console.log("clicked") } };
+    //this.gui.add(obj, 'Reset camera');
+
+    //this.gui.add({ "Reset camera": function () { } }, "Reset camera");
+
     var sceneFolder = this.gui.addFolder("Scene");
     sceneFolder.open();
-    var bc2 = rgbToHex1(...scene.background);
-    this.options['Background'] = bc2;
-    sceneFolder.addColor(this.options, 'Background').onFinishChange(function () {
-      //var adapter = self.adapter;
-      //var scene = adapter.getScene();
+    this.options['Background'] = rgbToHex1(...scene.background);
+    sceneFolder.addColor(this.options, 'Background').onChange(function () {
       var col = hexToRgbNew(self.options['Background']);
       self.adapter.setBackground(col);
+    });
+
+    this.options['Ambient'] = rgbToHex1(...scene.ambient);
+    sceneFolder.addColor(this.options, 'Ambient').onChange(function () {
+      var col = hexToRgbNew(self.options['Ambient']);
+      self.adapter.setAmbient(col);
     });
   },
 }

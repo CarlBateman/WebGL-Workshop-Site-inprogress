@@ -171,6 +171,10 @@ function makeThreeController(sceneGeneric) {
     renderer.setClearColor(new THREE.Color(...color));
   }
 
+  function setAmbient(color) {
+    ambientLight.color = new THREE.Color(...color);
+  }
+
   function set(id, property, value) {
     var obj = scene.getObjectById(id);
     var prop = Object.resolve(property, obj);
@@ -199,5 +203,6 @@ function makeThreeController(sceneGeneric) {
     display: display,
     set: set,
     setBackground: setBackground,
+    setAmbient: setAmbient,
   }
 }

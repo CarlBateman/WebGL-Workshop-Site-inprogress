@@ -176,6 +176,10 @@ function makeBabylonController(sceneGeneric) {
     scene.clearColor = new BABYLON.Color3(...color);
   }
 
+  function setAmbient(color) {
+    scene.ambientColor = new BABYLON.Color3(...color);
+  }
+
   function set(id, property, value) {
     var obj;
     if (id.includes("light")) {
@@ -212,5 +216,6 @@ function makeBabylonController(sceneGeneric) {
     display: display,
     set: set,
     setBackground: setBackground,
+    setAmbient: setAmbient,
   }
 }

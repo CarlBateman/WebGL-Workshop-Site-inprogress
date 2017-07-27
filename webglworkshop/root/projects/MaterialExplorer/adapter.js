@@ -25,6 +25,7 @@
         }
       }
 
+      this.setAmbient = currentEngine.setAmbient;
       this.render = currentEngine.render;
       this.setBackground = currentEngine.setBackground;
       this.setScene = currentEngine.setScene;

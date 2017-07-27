@@ -209,6 +209,10 @@ function makePlayCanvasController(sceneGeneric) {
     camera.camera.clearColor = new pc.Color(...color);
   }
 
+  function setAmbient(color) {
+    app.scene.ambientLight = new pc.Color(...color);
+  }
+
   function set(id, property, value) {
   }
 
@@ -234,5 +238,6 @@ function makePlayCanvasController(sceneGeneric) {
     display: display,
     set: set,
     setBackground: setBackground,
+    setAmbient: setAmbient,
   }
 }
