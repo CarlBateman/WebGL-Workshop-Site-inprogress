@@ -66,6 +66,9 @@ function makeThreeController(sceneGeneric) {
   function getScene() {
     var sceneGeneric = makeScene();
 
+    sceneGeneric.background = renderer.setClearColor.toArray();
+    sceneGeneric.ambient = ambientLight.color.toArray();
+
     sceneGeneric.cameraRot = camera.rotation.toArray();
     sceneGeneric.cameraRot.pop();
 
@@ -74,7 +77,6 @@ function makeThreeController(sceneGeneric) {
     sceneGeneric.cameraTarget[0] = controls.target.x;
     sceneGeneric.cameraTarget[1] = controls.target.y;
     sceneGeneric.cameraTarget[2] = controls.target.z;
-
 
     for (var i = 0; i < scene.children.length; i++) {
       var item = scene.children[i];
@@ -165,6 +167,10 @@ function makeThreeController(sceneGeneric) {
     }
   }
 
+  function setBackground(color) {
+    renderer.setClearColor(new THREE.Color(...color));
+  }
+
   function set(id, property, value) {
     var obj = scene.getObjectById(id);
     var prop = Object.resolve(property, obj);
@@ -191,6 +197,7 @@ function makeThreeController(sceneGeneric) {
     render: render,
     add: add,
     display: display,
-    set: set
+    set: set,
+    setBackground: setBackground,
   }
 }

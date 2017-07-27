@@ -31,8 +31,14 @@
           else
             logos[key].style.display = "block";
         }
-       }
+      }
+
+      this.setBackground = currentEngine.setBackground;
+
     },
+
+    //setBackground: function (color) { currentEngine.setBackground(color); },
+    //setBackground: null,
 
     setScene: function (scene) { currentEngine.setScene(scene); },
     getScene: function () { return currentEngine.getScene(); },

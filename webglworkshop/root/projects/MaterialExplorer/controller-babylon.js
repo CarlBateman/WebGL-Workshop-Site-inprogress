@@ -62,6 +62,7 @@ function makeBabylonController(sceneGeneric) {
 
   function getScene() {
     var sceneGeneric = makeScene();
+    sceneGeneric.background = scene.clearColor.asArray();
     sceneGeneric.ambient = scene.ambientColor.asArray();
 
     sceneGeneric.cameraRot = camera.rotation.asArray();
@@ -171,6 +172,10 @@ function makeBabylonController(sceneGeneric) {
     }
   }
 
+  function setBackground(color) {
+    scene.clearColor = new BABYLON.Color3(...color);
+  }
+
   function set(id, property, value) {
     var obj;
     if (id.includes("light")) {
@@ -205,6 +210,7 @@ function makeBabylonController(sceneGeneric) {
     render: render,
     add: add,
     display: display,
-    set: set
+    set: set,
+    setBackground: setBackground,
   }
 }

@@ -61,8 +61,8 @@ function main() {
   //adapter.setEngine("Babylon.js");
   adapter.setEngine("PlayCanvas.js");
 
-  optionsController.initialise();
-  optionsController.adapter = adapter;
+  optionsController.initialise(adapter);
+  //optionsController.adapter = adapter;
 
   (function render() {
     requestAnimationFrame(render);

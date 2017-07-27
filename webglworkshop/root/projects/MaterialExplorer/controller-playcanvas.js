@@ -78,14 +78,17 @@ function makePlayCanvasController(sceneGeneric) {
   function getScene() {
     var sceneGeneric = makeScene();
     sceneGeneric.ambient = app.scene.ambientLight.data;
+    sceneGeneric.background = camera.camera.clearColor.data;
 
     sceneGeneric.cameraPos = camera.position.data;// [0,0,10];
     var t = camera.rotation.getEulerAngles();
     sceneGeneric.cameraRot = [t.x, t.y, t.z];
 
-    sceneGeneric.cameraTarget[0] = camera.script.orbitCamera.pivotPoint.x;
-    sceneGeneric.cameraTarget[1] = camera.script.orbitCamera.pivotPoint.y;
-    sceneGeneric.cameraTarget[2] = camera.script.orbitCamera.pivotPoint.z;
+    if (camera.script && camera.script.orbitCamera) {
+      sceneGeneric.cameraTarget[0] = camera.script.orbitCamera.pivotPoint.x;
+      sceneGeneric.cameraTarget[1] = camera.script.orbitCamera.pivotPoint.y;
+      sceneGeneric.cameraTarget[2] = camera.script.orbitCamera.pivotPoint.z;
+    }
 
     for (var i = 0; i < entities.length; i++) {
       var item = entities[i];
@@ -202,6 +205,10 @@ function makePlayCanvasController(sceneGeneric) {
     }
   }
 
+  function setBackground(color) {
+    camera.camera.clearColor = new pc.Color(...color);
+  }
+
   function set(id, property, value) {
   }
 
@@ -225,6 +232,7 @@ function makePlayCanvasController(sceneGeneric) {
     render: render,
     add: add,
     display: display,
-    set: set
+    set: set,
+    setBackground: setBackground,
   }
 }
