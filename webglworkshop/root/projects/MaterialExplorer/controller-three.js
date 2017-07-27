@@ -66,7 +66,7 @@ function makeThreeController(sceneGeneric) {
   function getScene() {
     var sceneGeneric = makeScene();
 
-    sceneGeneric.background = renderer.setClearColor.toArray();
+    sceneGeneric.background = renderer.getClearColor().toArray();
     sceneGeneric.ambient = ambientLight.color.toArray();
 
     sceneGeneric.cameraRot = camera.rotation.toArray();
