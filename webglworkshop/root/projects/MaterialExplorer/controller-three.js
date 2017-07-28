@@ -105,6 +105,7 @@ function makeThreeController(sceneGeneric) {
         //var material = makeMaterial();
         mesh.materialId = item.material.genericId;
         var material = originalScene.materials[item.material.genericId];
+        material.ambient = item.material.ambient.toArray();
         material.diffuse = item.material.color.toArray();
         material.specular = item.material.specular.toArray();
         material.emissive = item.material.emissive.toArray();
@@ -161,6 +162,7 @@ function makeThreeController(sceneGeneric) {
       material.color.setRGB(...materialValue.diffuse);
       material.specular.setRGB(...materialValue.specular);
       material.emissive.setRGB(...materialValue.emissive);
+      material.ambient = new THREE.Color(...materialValue.ambient);
 
       var mesh = new THREE.Mesh(new geometryTypes[type](...geometryDefaults[type]), material);
       mesh.position.set(...item.position);
@@ -179,6 +181,19 @@ function makeThreeController(sceneGeneric) {
       light.cb_tag = type + "light";
 
       return light.id;
+    }
+  }
+
+  function setMaterial(idx, parameter, color) {
+    //if (parameter === "ambient") return;
+
+    parameter = parameter === "diffuse" ? "color" : parameter;
+
+    for (var i = 0; i < scene.children.length; i++) {
+      var item = scene.children[i];
+      if (item.cb_tag.includes("mesh")) {
+        item.material[parameter].setRGB(...color);
+      }
     }
   }
 
@@ -219,5 +234,6 @@ function makeThreeController(sceneGeneric) {
     set: set,
     setBackground: setBackground,
     setAmbient: setAmbient,
+    setMaterial: setMaterial,
   }
 }

@@ -13,6 +13,9 @@ function main() {
   var scene = makeScene();
 
   // set up a "default" scene
+  var material = makeMaterial();
+  scene.materials.push(material);
+
   var light = makeLight();
   light.type = "spot";
   light.position = [0, 100, 0];
@@ -22,28 +25,33 @@ function main() {
 
   var mesh = makeMesh();
   mesh.type = "torus";
+  mesh.materialId = 0;
   scene.meshes.push(mesh);
 
   var mesh = makeMesh();
   mesh.type = "box";
+  mesh.materialId = 0;
   mesh.position[0] = offset;
   mesh.position[1] = -offset;
   scene.meshes.push(mesh);
 
   var mesh = makeMesh();
   mesh.type = "cone";
+  mesh.materialId = 0;
   mesh.position[0] = -offset;
   mesh.position[1] = -offset;
   scene.meshes.push(mesh);
 
   var mesh = makeMesh();
   mesh.type = "sphere";
+  mesh.materialId = 0;
   mesh.position[0] = -offset;
   mesh.position[1] = offset;
   scene.meshes.push(mesh);
 
   var mesh = makeMesh();
   mesh.type = "cylinder";
+  mesh.materialId = 0;
   mesh.position[0] = offset;
   mesh.position[1] = offset;
   scene.meshes.push(mesh);

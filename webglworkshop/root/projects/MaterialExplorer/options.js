@@ -43,7 +43,24 @@ var optionsController = {
       var col = hexToRgbNew(self.options['Ambient']);
       self.adapter.setAmbient(col);
     });
+
+    var materialFolder = this.gui.addFolder("Material");
+    materialFolder.open();
+
+
+    var t = makeMaterial();
+    var keys = Object.keys(t);
+    for (var i = 0; i < keys.length; i++) {
+      var key = keys[i];
+      this.options[key] = rgbToHex1(...t[key]);
+      materialFolder.addColor(this.options, key).onChange(function (key) {
+        var col = hexToRgbNew(self.options[key]);
+        self.adapter.setMaterial(0, key, col);
+      }.bind(null, key));
+    }
+
   },
+
 }
 
 

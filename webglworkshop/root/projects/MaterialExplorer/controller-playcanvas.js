@@ -53,7 +53,6 @@ function makePlayCanvasController(sceneGeneric) {
     camera = new pc.Entity('camera');
     camera.addComponent('camera', {
       fov: 74,
-      clearColor: new pc.Color(0.1, 0.1, 0.1)
     });
 
     app.assets.loadFromUrl('orbit-camera-input-mouse.js', 'script', function (err, asset) {
@@ -112,7 +111,6 @@ function makePlayCanvasController(sceneGeneric) {
         
         mesh.position = [...item.localPosition.data];
 
-        //var material = makeMaterial();
         mesh.materialId = item.model.material.genericId;
         var material = originalScene.materials[item.model.material.genericId];
         material.ambient = item.model.material.ambient.data;
@@ -170,7 +168,6 @@ function makePlayCanvasController(sceneGeneric) {
     app.render();
   };
 
-  //var defaultMaterial = new pc.StandardMaterial();
   function add(item) {
     var type = item.type;
     if (type in geometryTypes) {
@@ -181,32 +178,28 @@ function makePlayCanvasController(sceneGeneric) {
 
       mesh1.cb_tag = type + "mesh";
 
+      var node = new pc.GraphNode();
+      var mesh = geometryTypes[type](app.graphicsDevice, geometryDefaults[type]);
+
+      var material = new pc.StandardMaterial();
+      var meshInstance = new pc.MeshInstance(mesh1.model.meshInstances[0].node, mesh, material);
+
+      mesh1.model.meshInstances = [meshInstance];
+
       var materialValue = originalScene.materials[item.materialId];
-      var material = mesh1.model.material;
+      material.genericId = item.materialId;
       material.ambient.set(...materialValue.ambient);
       material.diffuse.set(...materialValue.diffuse);
       material.emissive.set(...materialValue.emissive);
       material.specular.set(...materialValue.specular);
-      material.genericId = item.materialId;
-
-      var node = new pc.GraphNode();
-      var mesh = geometryTypes[type](app.graphicsDevice, geometryDefaults[type]);
-
-      //var material = new pc.StandardMaterial();
-      ////material.genericId = item.materialId;
-      //material.ambient.set(...materialValue.ambient);
-      //material.diffuse.set(...materialValue.diffuse);
-      //material.emissive.set(...materialValue.emissive);
-      //material.specular.set(...materialValue.specular);
-
-      var meshInstance = new pc.MeshInstance(mesh1.model.meshInstances[0].node, mesh, new pc.StandardMaterial());
-
-      mesh1.model.meshInstances = [meshInstance];
+      mesh1.model.material = material;
 
       mesh1.setLocalPosition(...item.position);
+
       app.root.addChild(mesh1);
 
       entities.push(mesh1);
+     // materials.push(material);
 
       return mesh.id;
     }
@@ -227,6 +220,16 @@ function makePlayCanvasController(sceneGeneric) {
       entities.push(light);
 
       return light.id;
+    }
+  }
+
+  function setMaterial(idx, parameter, color) {
+    for (var i = 0; i < entities.length; i++) {
+      var item = entities[i];
+      if (item.cb_tag.includes("mesh")) {
+        item.model.material[parameter].set(...color);
+        item.model.material.update();
+      }
     }
   }
 
@@ -264,5 +267,6 @@ function makePlayCanvasController(sceneGeneric) {
     set: set,
     setBackground: setBackground,
     setAmbient: setAmbient,
+    setMaterial: setMaterial,
   }
 }
