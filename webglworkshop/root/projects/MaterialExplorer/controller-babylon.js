@@ -8,6 +8,8 @@ function makeBabylonController(sceneGeneric) {
   var scene;
   var camera;
 
+  var originalScene;
+
   var lightTypes = [];
   lightTypes["spot"] = BABYLON.SpotLight;
   lightTypes["point"] = BABYLON.PointLight;
@@ -94,7 +96,14 @@ function makeBabylonController(sceneGeneric) {
       mesh.position = item.position.asArray();
       //mesh.position[0] *= -1;
 
-      var material = makeMaterial();
+      //var material = makeMaterial();
+      mesh.materialId = item.material.genericId;
+      var material = originalScene.materials[item.material.genericId];
+      material.ambient = item.material.ambientColor.asArray();
+      material.diffuse = item.material.diffuseColor.asArray();
+      material.specular = item.material.specularColor.asArray();
+      material.emissive = item.material.emissiveColor.asArray();
+      sceneGeneric.materials[item.material.genericId] = material;
 
       sceneGeneric.meshes.push(mesh);
       //sceneGeneric.material.push(material);
@@ -104,6 +113,7 @@ function makeBabylonController(sceneGeneric) {
   }
 
   function setScene(sceneGeneric) {
+    originalScene = sceneGeneric;
     scene.clearColor = new BABYLON.Color3(...sceneGeneric.background);
     scene.ambientColor = new BABYLON.Color3(...sceneGeneric.ambient);
 
@@ -154,8 +164,14 @@ function makeBabylonController(sceneGeneric) {
       mesh.position = new BABYLON.Vector3(...item.position);
       //mesh.position.x *= -1;
 
-      mesh.material = new BABYLON.StandardMaterial("texture1", scene);
-      mesh.material.ambientColor = mesh.material.diffuseColor.clone();
+      var materialValue = originalScene.materials[item.materialId];
+      var material = new BABYLON.StandardMaterial("texture1", scene);
+      material.genericId = item.materialId;
+      material.ambientColor = new BABYLON.Color3(...materialValue.ambient);
+      material.diffuseColor = new BABYLON.Color3(...materialValue.diffuse);
+      material.specularColor = new BABYLON.Color3(...materialValue.specular);
+      material.emissiveColor = new BABYLON.Color3(...materialValue.emissive);
+      mesh.material = material;
 
       mesh.cb_tag = type;
 

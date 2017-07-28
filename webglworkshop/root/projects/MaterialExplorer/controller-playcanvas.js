@@ -5,12 +5,11 @@ function makePlayCanvasController(sceneGeneric) {
   var glCanvas;
   var app;
   var view;
-  var renderer;
   var scene;
   var camera;
-  var controls;
-  var ambientLight;
+
   var entities = [];
+  var originalScene;
 
   var lightTypes = [];
   lightTypes["spot"] = "";
@@ -77,10 +76,11 @@ function makePlayCanvasController(sceneGeneric) {
 
   function getScene() {
     var sceneGeneric = makeScene();
+    sceneGeneric.materials = originalScene.materials;
     sceneGeneric.ambient = app.scene.ambientLight.data;
     sceneGeneric.background = camera.camera.clearColor.data;
 
-    sceneGeneric.cameraPos = camera.position.data;// [0,0,10];
+    sceneGeneric.cameraPos = camera.position.data;
     var t = camera.rotation.getEulerAngles();
     sceneGeneric.cameraRot = [t.x, t.y, t.z];
 
@@ -111,7 +111,15 @@ function makePlayCanvasController(sceneGeneric) {
         mesh.type = item.cb_tag.replace("mesh", "");
         
         mesh.position = [...item.localPosition.data];
-        var material = makeMaterial();
+
+        //var material = makeMaterial();
+        mesh.materialId = item.model.material.genericId;
+        var material = originalScene.materials[item.model.material.genericId];
+        material.ambient = item.model.material.ambient.data;
+        material.diffuse = item.model.material.diffuse.data;
+        material.specular = item.model.material.specular.data;
+        material.emissive = item.model.material.emissive.data;
+        sceneGeneric.materials[item.model.material.genericId] = material;
 
         sceneGeneric.meshes.push(mesh);
         //sceneGeneric.material.push(material);
@@ -122,6 +130,7 @@ function makePlayCanvasController(sceneGeneric) {
   }
 
   function setScene(sceneGeneric) {
+    originalScene = sceneGeneric;
     camera.camera.clearColor = new pc.Color(...sceneGeneric.background);
     app.scene.ambientLight = new pc.Color(...sceneGeneric.ambient);
 
@@ -161,7 +170,7 @@ function makePlayCanvasController(sceneGeneric) {
     app.render();
   };
 
-  var defaultMaterial = new pc.StandardMaterial();
+  //var defaultMaterial = new pc.StandardMaterial();
   function add(item) {
     var type = item.type;
     if (type in geometryTypes) {
@@ -172,9 +181,25 @@ function makePlayCanvasController(sceneGeneric) {
 
       mesh1.cb_tag = type + "mesh";
 
+      var materialValue = originalScene.materials[item.materialId];
+      var material = mesh1.model.material;
+      material.ambient.set(...materialValue.ambient);
+      material.diffuse.set(...materialValue.diffuse);
+      material.emissive.set(...materialValue.emissive);
+      material.specular.set(...materialValue.specular);
+      material.genericId = item.materialId;
+
       var node = new pc.GraphNode();
       var mesh = geometryTypes[type](app.graphicsDevice, geometryDefaults[type]);
-      var meshInstance = new pc.MeshInstance(mesh1.model.meshInstances[0].node, mesh, defaultMaterial);
+
+      //var material = new pc.StandardMaterial();
+      ////material.genericId = item.materialId;
+      //material.ambient.set(...materialValue.ambient);
+      //material.diffuse.set(...materialValue.diffuse);
+      //material.emissive.set(...materialValue.emissive);
+      //material.specular.set(...materialValue.specular);
+
+      var meshInstance = new pc.MeshInstance(mesh1.model.meshInstances[0].node, mesh, new pc.StandardMaterial());
 
       mesh1.model.meshInstances = [meshInstance];
 

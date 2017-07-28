@@ -9,6 +9,7 @@ function makeThreeController(sceneGeneric) {
   var camera;
   var controls;
   var ambientLight;
+  var originalScene;
 
   var lightTypes = [];
   lightTypes["spot"] = THREE.SpotLight;
@@ -65,7 +66,7 @@ function makeThreeController(sceneGeneric) {
 
   function getScene() {
     var sceneGeneric = makeScene();
-
+    sceneGeneric.materials = originalScene.materials;
     sceneGeneric.background = renderer.getClearColor().toArray();
     sceneGeneric.ambient = ambientLight.color.toArray();
 
@@ -101,7 +102,13 @@ function makeThreeController(sceneGeneric) {
         mesh.type = item.cb_tag.replace("mesh", "");
         mesh.position = item.position.toArray();
         
-        var material = makeMaterial();
+        //var material = makeMaterial();
+        mesh.materialId = item.material.genericId;
+        var material = originalScene.materials[item.material.genericId];
+        material.diffuse = item.material.color.toArray();
+        material.specular = item.material.specular.toArray();
+        material.emissive = item.material.emissive.toArray();
+        sceneGeneric.materials[item.material.genericId] = material;
 
         sceneGeneric.meshes.push(mesh);
         //sceneGeneric.material.push(material);
@@ -112,6 +119,7 @@ function makeThreeController(sceneGeneric) {
   }
 
   function setScene(sceneGeneric) {
+    originalScene = sceneGeneric;
     renderer.setClearColor(new THREE.Color(...sceneGeneric.background));
     ambientLight.color = new THREE.Color(...sceneGeneric.ambient);
     camera.position.set(...sceneGeneric.cameraPos);
@@ -143,11 +151,18 @@ function makeThreeController(sceneGeneric) {
     //targetControl.update();
   };
 
-  var defaultMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
+  //var defaultMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
   function add(item) {
     var type = item.type;
     if (type in geometryTypes) {
-      var mesh = new THREE.Mesh(new geometryTypes[type](...geometryDefaults[type]), defaultMaterial);
+      var materialValue = originalScene.materials[item.materialId];
+      var material = new THREE.MeshPhongMaterial();
+      material.genericId = item.materialId;
+      material.color.setRGB(...materialValue.diffuse);
+      material.specular.setRGB(...materialValue.specular);
+      material.emissive.setRGB(...materialValue.emissive);
+
+      var mesh = new THREE.Mesh(new geometryTypes[type](...geometryDefaults[type]), material);
       mesh.position.set(...item.position);
       scene.add(mesh);
 
