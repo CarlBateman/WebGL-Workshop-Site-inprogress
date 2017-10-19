@@ -1,0 +1,165 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>map</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta charset="utf-8" />
+
+  <script type="text/JavaScript">
+    window.addEventListener('DOMContentLoaded', function () { main(); });
+
+    function main() {
+      const list = [
+        { id: 1, author: " Morgan McCircuit", body: "Great" },
+        { id: 2, author: " Bender Bender", body: "Excellent" },
+      ]
+
+      var mapper1 = () => {
+        return list.map((item) => {
+          return (item);
+        });
+      }
+
+      var mapper2 = () => {
+        list.map((item) => {
+          return (item);
+        });
+      }
+
+      //list.map(function (item) {
+      //  console.log(item);
+      //});
+
+      //console.log(list);
+      //console.log(mapper1());
+      //console.log(mapper2());
+
+      const r1 = mapper1();
+      const r2 = mapper2();
+
+      console.log("r1", r1);
+      console.log("r2", r2);
+
+      //function mapper1() {
+      //  return list.map((item) => {
+      //    return (item);
+      //  });
+      //}
+
+      //function mapper2() {
+      //  list.map((item) => {
+      //    return (item);
+      //  });
+      //}
+
+      console.log(makeF1().getThis());
+
+
+      function makeF1() {
+        console.log("makeF1 - this", this); // <-- this === Window
+
+        function getThis() {
+          //console.log("makeF1.getThis()", this); // <-- this === makeF1
+          return this;
+        }
+
+        return { a: 1, getThis: getThis };
+      }
+
+      makeF2 = () => {
+        console.log("makeF2 - this", this); // <-- this === Window
+
+        getThisAtCreation = () => {
+          //console.log("makeF2.getThis()", this); // <-- this === Window
+          return this; // <-- this === Window
+        }
+
+        function getThisAtRun() {
+          //console.log("makeF1.getThis()", this); // <-- this === makeF1
+          return this;
+        }
+
+        return { a: 1, getThisAtCreation:getThisAtCreation, getThisAtRun: getThisAtRun };
+      }
+      //console.log(makeF2().getThisAtCreation());
+      //console.log(makeF2().getThisAtRun());
+
+      function makeBase(that) {
+        //function fn1() { };
+        //function fn2() { };
+
+        return { fn1: that.fn1, fn2: that.fn2 };
+      }
+
+      function makeController1() {
+        function fn1() { console.log("fn1") };
+        function fn2() { console.log("fn2") };
+
+        //var a = makeBase();
+      }
+
+      function factory() {
+        var that = makeController1;
+        return makeBase(that);
+      }
+
+      console.log(factory());
+
+
+
+      //function* stringIter() {  
+      //  var str = "bobsyouruncle";  
+      //  var idx = 0;  
+      //  while(idx < str.length)  
+      //    yield str[idx++];  
+      //}  
+
+      //var si = stringIter();  
+
+      //console.log(si.next().value);  
+      //console.log(si.next().value);  
+      //console.log(si.next().value);  
+
+
+      //function *nameList(){
+      //  yield "Sam";
+      //  yield "Tyler";
+      //}
+
+      //for(let name of nameList()){
+      //  console.log( name );
+      //}
+
+
+      let gen1 = function *() {
+        yield 1;
+        yield 2;
+      };
+
+      function *gen() {
+        yield 1;
+        yield 2;
+      };
+
+      for (let i of gen1()) {
+        console.log(i);
+      }
+      //console.log(gen1.value);
+      console.log(gen1().next().value);
+
+      let aa = gen1();
+      console.log(aa.next().value);
+      aa = gen1();
+      console.log(aa.next().value);
+
+
+    }
+  </script>
+</head>
+
+<body>
+  <canvas id="glcanvas">
+    Your browser doesn't appear to support the <code>&lt;canvas&gt;</code> element.
+  </canvas>
+</body>
+</html>

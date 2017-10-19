@@ -1,0 +1,152 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>Skully colour</title>
+  <meta charset="utf-8" />
+
+  <style>
+    html, body {
+      height: 100%;
+      min-height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+  </style>
+
+  <script id="vertexShader" type="x-shader/x-vertex">
+    varying vec2 vUv;
+
+    void main() {
+      vUv = (position.xy + position.zx) /20.0;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0 );
+    }
+  </script>
+
+  <script id="fragmentShader" type="x-shader/x-fragment">
+    varying vec2 vUv;
+    uniform float time;
+    uniform float alpha;
+    uniform vec2 resolution;
+
+    #define PI 3.14159
+    #define TWO_PI (PI*2.0)
+    #define N 68.5
+
+    void main() {
+      vec2 center = gl_FragCoord.xy;
+      center.x=-10.12*sin(time/200.0);
+      center.y=-10.12*cos(time/200.0);
+
+      vec2 v = (vUv.xy - resolution) / min(resolution.y,resolution.x) * 15.0;
+      v.x=v.x-10.0;
+      v.y=v.y-200.0;
+      float col = 0.0;
+
+      for(float i = 0.0; i < N; i++) {
+        float a = i * (TWO_PI/N) * 61.95;
+        col += cos(TWO_PI*(v.y * cos(a) + v.x * sin(a) + sin(time*0.004)*100.0 ));
+      }
+
+      col /= 5.0;
+
+      gl_FragColor = vec4(col*1.0, -col*1.0, -col*4.0, 1.0);
+    }
+  </script>
+
+  <script src="three.min.js"></script>
+  <script src="OrbitControls.js"></script>
+  <script src="OBJLoader.js"></script>
+
+  <script>
+    window.addEventListener ?
+    window.addEventListener("load", skull, false) :
+    window.attachEvent && window.attachEvent("onload", skull);
+
+    function skull() {
+      var scene = new THREE.Scene();
+      var renderer;
+      var camera;
+      var orbitControls = null;
+
+
+      window.addEventListener('resize', function (event) {
+        var w = renderer.domElement.parentElement.clientWidth;
+        var h = renderer.domElement.parentElement.clientHeight;
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h);
+      });
+
+      (function init() {
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 25;
+        camera.zoom = 15;
+        camera.updateProjectionMatrix();
+
+        renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        var geometry = new THREE.BoxGeometry(1, 1, 1);
+        //var material = new THREE.MeshPhongMaterial({ color: 0x00ff00 });
+        var material = createMaterial()
+
+        var light1 = new THREE.DirectionalLight(0xddddff, .5);
+        var light2 = new THREE.DirectionalLight(0xffffdd, .5);
+        var amb = new THREE.AmbientLight(0x404040);
+        var d = 100;
+
+        light1.position.set(d, d, d);
+        light1.position.set(-d, d, d);
+        scene.add(light1);
+        scene.add(light2);
+        scene.add(amb);
+
+        orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
+
+        var loader = new THREE.OBJLoader();
+        loader.load('craneo.obj', function (data) {
+          data.children[0].material = material;
+          scene.add(data);
+        });
+
+        var render = function () {
+          requestAnimationFrame(render);
+
+          material.uniforms.time.value += 0.005;
+
+          orbitControls.update();
+
+          renderer.render(scene, camera);
+        };
+
+        render();
+      })();
+
+      function createMaterial() {
+        var shaderMaterial = new THREE.ShaderMaterial({
+          side: THREE.DoubleSide,
+          uniforms: {
+            time: { type: 'f', value: 0.2 },
+            scale: { type: 'f', value: 0.02 },
+            alpha: { type: 'f', value: 0.06 },
+            resolution: { type: "v2", value: new THREE.Vector2(.5, .5) }
+          },
+          //attributes: {},
+          vertexShader: document.getElementById('vertexShader').textContent,
+          fragmentShader: document.getElementById('fragmentShader').textContent
+        });
+
+        return shaderMaterial;
+      }
+
+
+    }
+  </script>
+
+</head>
+<body>
+  <div id="page"></div>
+</body>
+</html>

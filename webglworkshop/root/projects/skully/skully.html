@@ -1,0 +1,74 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>Carousel Test</title>
+  <meta charset="utf-8" />
+
+  <style>
+    html, body {
+      height: 100%;
+      min-height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .webgl {
+      position: absolute;
+      height: 100vh;
+      top: 0;
+      left: 0;
+      border: 0 solid green;
+    }
+  </style>
+
+   <script id="vertexShader" type="x-shader/x-vertex">
+    varying vec2 vUv;
+
+    void main() {
+      vUv = (position.xy + position.zx) /20.0;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0 );
+    }
+  </script>
+
+  <script id="fragmentShader" type="x-shader/x-fragment">
+    varying vec2 vUv;
+    uniform float time;
+    uniform float alpha;
+    uniform vec2 resolution;
+
+    #define PI 3.14159
+    #define TWO_PI (PI*2.0)
+    #define N 68.5
+
+    void main() {
+      vec2 center = gl_FragCoord.xy;
+      center.x=-10.12*sin(time/200.0);
+      center.y=-10.12*cos(time/200.0);
+
+      vec2 v = (vUv.xy - resolution) / min(resolution.y,resolution.x) * 15.0;
+      v.x=v.x-10.0;
+      v.y=v.y-200.0;
+      float col = 0.0;
+
+      for(float i = 0.0; i < N; i++) {
+      float a = i * (TWO_PI/N) * 61.95;
+      col += cos(TWO_PI*(v.y * cos(a) + v.x * sin(a) + sin(time*0.004)*100.0 ));
+    }
+
+    col /= 5.0;
+
+    gl_FragColor = vec4(col*1.0, -col*1.0, -col*4.0, 1.0);
+    }
+  </script>
+  <script src="../../libs/three-r84/three.min.js"></script>
+  <script src="../../libs/three-r84/OrbitControls.js"></script>
+  <script src="../../libs/three-r84/GLTFLoader.js"></script>
+  <script src="../../libs/three-r84/OBJLoader.js"></script>
+  <script src="skully.js"></script>
+
+</head>
+<body>
+  <div id="page"></div>
+</body>
+</html>

@@ -1,0 +1,151 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>Skully swole</title>
+  <meta charset="utf-8" />
+
+  <style>
+    html, body {
+      height: 100%;
+      min-height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+  </style>
+
+  <script id="vertexShader" type="x-shader/x-vertex">
+    varying vec3 vPos;
+    varying vec3 vNormal;
+    uniform float radiusLimit;
+
+    void main() {
+      vec3 sphere_pt = position;
+      vec3 sphere_normal = normal;
+      if(length(position) < radiusLimit) {
+        sphere_pt = normalize(position) * radiusLimit;
+        sphere_normal = normalize(position);
+      } 
+      vPos = (modelMatrix * vec4(sphere_pt, 1.0 )).xyz;
+
+      vNormal = normalMatrix * sphere_normal;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(sphere_pt,1.0);
+    }
+  </script>
+
+  <script id="fragmentShader" type="x-shader/x-fragment">
+    uniform vec3 diffuse;
+    varying vec3 vPos;
+    varying vec3 vNormal;
+    struct DirectionalLight {
+      vec3 direction;
+      vec3 color;
+    };
+    uniform DirectionalLight directionalLights[ NUM_DIR_LIGHTS ];
+
+    void main() {
+      vec4 addedLights = vec4(0.1, 0.1, 0.1, 1.0);
+      for(int l = 0; l < NUM_DIR_LIGHTS; l++) {
+        vec3 lightDirection = normalize(vPos - (directionalLights[l].direction + cameraPosition));
+        addedLights.rgb += clamp(dot(-lightDirection, vNormal), 0.0, 1.0) * directionalLights[l].color;
+      }
+      gl_FragColor = addedLights;//mix(vec4(diffuse.x, diffuse.y, diffuse.z, 1.0), addedLights, addedLights);
+    }
+  </script>
+
+  <script src="three.min.js"></script>
+  <script src="OrbitControls.js"></script>
+  <script src="OBJLoader.js"></script>
+
+  <script>
+    window.addEventListener ?
+    window.addEventListener("load", skull, false) :
+    window.attachEvent && window.attachEvent("onload", skull);
+
+    function skull() {
+      var scene = new THREE.Scene();
+      var renderer;
+      var camera;
+      var orbitControls = null;
+
+
+      window.addEventListener('resize', function (event) {
+        var w = renderer.domElement.parentElement.clientWidth;
+        var h = renderer.domElement.parentElement.clientHeight;
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h);
+      });
+
+      (function init() {
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 25;
+        camera.zoom = 15;
+        camera.updateProjectionMatrix();
+
+        renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        var geometry = new THREE.BoxGeometry(1, 1, 1);
+        //var material = new THREE.MeshPhongMaterial({ color: 0x00ff00 });
+        var material = createMaterial()
+
+        var light1 = new THREE.DirectionalLight(0x9999ff, .5);
+        var light2 = new THREE.DirectionalLight(0xff9999, .5);
+        var amb = new THREE.AmbientLight(0x404040);
+        var d = 100;
+
+        light1.position.set(d, d, d);
+        light1.position.set(-d, d, d);
+        scene.add(light1);
+        scene.add(light2);
+        scene.add(amb);
+
+        orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
+
+        var loader = new THREE.OBJLoader();
+        loader.load('craneo.obj', function (data) {
+          data.children[0].material = material;
+          scene.add(data);
+        });
+
+        var step = 0;
+        var render = function () {
+          requestAnimationFrame(render);
+
+          step += 0.025;
+          material.uniforms.radiusLimit.value = (1 - Math.cos(step) / 2) * .85;
+
+          orbitControls.update();
+
+          renderer.render(scene, camera);
+        };
+
+        render();
+      })();
+
+      function createMaterial() {
+        var uniforms = THREE.UniformsUtils.merge([
+            THREE.UniformsLib['lights'],
+            { radiusLimit: { type: 'f', value: 0 } }
+        ]);
+        var vertexShader = document.getElementById('vertexShader').text;
+        var fragmentShader = document.getElementById('fragmentShader').text;
+        shaderMaterial = new THREE.ShaderMaterial({
+          uniforms: uniforms,
+          vertexShader: vertexShader,
+          fragmentShader: fragmentShader,
+          lights: true
+        });
+
+        return shaderMaterial;
+      }
+    }
+  </script>
+
+</head>
+<body>
+  <div id="page"></div>
+</body>
+</html>

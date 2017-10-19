@@ -1,0 +1,87 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>Carousel Test</title>
+  <meta charset="utf-8" />
+
+  <style>
+    #page {
+      background-color: paleturquoise;
+    }
+
+    #carousel {
+      background-color: black;
+    }
+
+    html, body {
+      height: 100%;
+      min-height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+
+    div.carouselContainer {
+      left: 0;
+      border: 0 solid blue;
+      height: 25%;
+      min-height: 300px;
+      overflow: hidden;
+    }
+
+    div.carouselItem {
+      position: relative;
+      border: 0 solid blue;
+      /*top: 100px;*/
+      height: 25%;
+      min-height: 300px;
+      /*visibility:hidden;*/
+    }
+
+    .webgl {
+      position: absolute;
+      top: 0;
+      left: 0;
+      border: 0 solid green;
+    }
+
+    .webgl-head {
+    }
+
+    .backgroundImage {
+      position: relative;
+      top: -100px;
+      display: inline;
+    }
+
+    p.credits {
+      font-size: 0.75em;
+      line-height: 1.5em;
+      position: absolute;
+      top: 5px;
+      left: 5px;
+      color: #888;
+    }
+  </style>
+
+  <script src="../../../libs/three-r84/three.min.js"></script>
+
+  <script src="carousel.js"></script>
+  <script src="earth.js"></script>
+  <script src="controller.js"></script>
+
+</head>
+<body>
+  <div id="page">
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi quis lectus ut erat cursus facilisis. Nullam lacinia euismod nunc, vel rutrum metus tempus eget. Suspendisse suscipit massa eget dui tincidunt, at porta diam porta. Morbi lobortis, nulla vehicula commodo convallis, justo urna posuere diam, non varius velit nisl ac tortor. Duis condimentum ac leo nec faucibus. Quisque cursus purus ut lacinia pulvinar. Cras eget sem id nunc ornare varius. Aliquam congue dui in condimentum tincidunt. Donec at tortor sit amet massa tincidunt ornare. Mauris fermentum et dolor nec sollicitudin. Donec quis elementum ligula. Nunc bibendum nisl eget porta pretium. Pellentesque dui leo, viverra quis ultrices in, pretium condimentum tortor. Vivamus porttitor pellentesque pellentesque. Mauris efficitur sed sem ac lobortis.</p>
+
+    <p>Praesent eu sagittis lorem. Nam ultrices, lorem quis feugiat suscipit, augue nunc venenatis risus, ut hendrerit augue enim sed lorem. Maecenas molestie libero vel tortor tristique, sit amet tincidunt massa laoreet. Donec vitae odio sed diam tristique sodales. Suspendisse potenti. Duis vel est egestas, pulvinar diam vel, faucibus odio. Aliquam bibendum tempus porta. Vivamus iaculis leo lobortis, rutrum massa et, varius elit. Nulla varius ipsum vel dolor molestie dignissim. Interdum et malesuada fames ac ante ipsum primis in faucibus. Donec et lorem eget nunc efficitur luctus. Fusce interdum quis odio eu varius. Ut consequat eleifend ante at bibendum. Nulla in euismod nibh.</p>
+
+    <p>Suspendisse potenti. Fusce molestie ex quis ante luctus, at bibendum ex condimentum. Maecenas non odio eu massa convallis elementum non et ipsum. Ut sed tempus tellus. Donec in consequat velit, sed tristique velit. Donec erat tortor, elementum vel lorem sit amet, imperdiet gravida mi. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Nam mauris tortor, pulvinar sit amet arcu eu, pellentesque iaculis metus. Vivamus id massa in elit scelerisque convallis. Curabitur at dolor vitae felis luctus condimentum. Donec malesuada erat ac erat rhoncus, in feugiat ante feugiat. Morbi iaculis et libero non efficitur. Vestibulum id dolor luctus, tincidunt massa quis, fringilla orci. Etiam pharetra ac augue eget gravida.</p>
+
+    <p>Curabitur sagittis nunc metus, vel bibendum nibh tempor et. Maecenas dui neque, tincidunt scelerisque orci id, venenatis sagittis quam. Aenean nec pellentesque sapien. Integer iaculis, lacus vulputate porta finibus, erat odio tempor velit, nec lacinia erat ante ac ipsum. Suspendisse vitae eros at elit posuere faucibus. Suspendisse sit amet neque vitae libero lacinia vestibulum. Nullam massa justo, eleifend sed vestibulum in, egestas non dui. Cras euismod aliquam velit, sed finibus ante blandit vitae. Nam convallis leo sit amet ligula facilisis consectetur.</p>
+
+    <p>Phasellus at fringilla felis, nec ullamcorper tortor. Aliquam at suscipit justo. Vestibulum eget ante ligula. Nam id laoreet eros. Nam ultricies at massa a euismod. Sed scelerisque, nulla in ullamcorper cursus, dui dui ornare nisi, convallis pulvinar ante eros ac neque. Etiam posuere ut nisi quis sollicitudin. Etiam vehicula lacus nisi, non sagittis massa vehicula at. In vel nunc porta, venenatis lectus sit amet, aliquam dui. Sed fringilla eros lacinia mauris lacinia cursus eu nec turpis. Mauris luctus, ante et mattis viverra, ex quam imperdiet dolor, nec semper diam ligula non eros.</p>
+  </div>
+</body>
+</html>

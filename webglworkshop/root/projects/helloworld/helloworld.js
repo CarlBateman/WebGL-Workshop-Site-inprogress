@@ -1,30 +1,28 @@
-﻿function earth(div) {
+﻿window.addEventListener ?
+window.addEventListener("load", earth, false) :
+window.attachEvent && window.attachEvent("onload", earth);
+
+function earth() {
+  var imgPath = "../../imgs/";
+
+  var page = document.getElementById("page");
+  var div = document.createElement("div");
+  page.parentNode.insertBefore(div, page);
+  div.className += "carouselContainer ";
+
   var scene = new THREE.Scene();
   var renderer;
   var camera;
 
   window.addEventListener('resize', function (event) {
-    //var w = window.innerWidth;
-    //var h = window.innerHeight * .3;
     var w = renderer.domElement.parentElement.clientWidth;
     var h = renderer.domElement.parentElement.clientHeight;
     camera.aspect = w / h;
-    //camera.setViewOffset(w * 1.6, h, w * 0, h * 0, w, h);
-    camera.position.x = -w / 80 + 5;
     camera.updateProjectionMatrix();
     renderer.setSize(w, h);
   });
 
   (function init() {
-    // add div
-    // add image to div
-    // add canvas to div
-    // add p to div
-    // change image to background propery?
-    //var page = document.getElementById("page");
-    //var div = document.createElement("div");
-    //page.parentNode.insertBefore(div, page);
-    //div.className += "carouselContainer ";
     addStarfield(div);
 
     var p = document.createElement("p");
@@ -61,7 +59,7 @@
 
   function addStarfield(container) {
     var img = document.createElement("img");
-    img.src = "../../../imgs/milky.jpg";
+    img.src = imgPath + "milky.jpg";
     img.className += "backgroundImage ";
     container.appendChild(img);
   }
@@ -84,7 +82,7 @@
 
     var cloudsTexture = new THREE.Texture();
     var loader = new THREE.ImageLoader();
-    loader.load("../../../imgs/fair_clouds_1k.png", function (image) {
+    loader.load(imgPath + "fair_clouds_1k.png", function (image) {
       cloudsTexture.image = image;
       cloudsTexture.needsUpdate = true;
     });
@@ -102,21 +100,21 @@
   function createEarthMaterial() {
     var earthTexture = new THREE.Texture();
     var loader = new THREE.ImageLoader();
-    loader.load("../../../imgs/earthmap1k.jpg", function (image) {
+    loader.load(imgPath + "earthmap1k.jpg", function (image) {
       earthTexture.image = image;
       earthTexture.needsUpdate = true;
     });
 
     var normalTexture = new THREE.Texture();
     var loader = new THREE.ImageLoader();
-    loader.load("../../../imgs/earth_normalmap_flat2k.jpg", function (image) {
+    loader.load(imgPath + "earth_normalmap_flat2k.jpg", function (image) {
       normalTexture.image = image;
       normalTexture.needsUpdate = true;
     });
 
     var specularTexture = new THREE.Texture();
     var loader = new THREE.ImageLoader();
-    loader.load("../../../imgs/earthspec1k.jpg", function (image) {
+    loader.load(imgPath + "earthspec1k.jpg", function (image) {
       specularTexture.image = image;
       specularTexture.needsUpdate = true;
     });
@@ -134,7 +132,6 @@
   function addRenderer(container) {
     var renderer = new THREE.WebGLRenderer({ alpha: true, antialias:true });
     container.appendChild(renderer.domElement);
-    //renderer.setSize(window.innerWidth, window.innerHeight * .3);
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.name = "renderer";
     renderer.context.canvas.className += "webgl ";
@@ -143,16 +140,12 @@
   }
 
   function createCamera(container) {
-    //var w = window.innerWidth;
-    //var h = window.innerHeight * .3;
     var w = container.clientWidth;
     var h = container.clientHeight;
     var camera = new THREE.PerspectiveCamera(75, w / h, 0.1, 1000);
-    //camera.setViewOffset(w * 1.6, h, w * 0, h * 0, w, h);
     camera.position.z = 50;
     camera.zoom = 10;
     camera.aspect = w / h;
-    camera.position.x = -w / 80 + 5;
     camera.updateProjectionMatrix();
     return camera;
   }
@@ -170,6 +163,4 @@
     scene.add(ambient);
 
   }
-
-  return { init };
 }

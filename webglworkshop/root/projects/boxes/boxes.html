@@ -1,0 +1,39 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>Boxes</title>
+  <meta charset="utf-8" />
+  <style>
+    html, body {
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
+    }
+
+    canvas {
+      border: 2px solid #0300ff;
+      border-radius: 10px;
+      touch-action: none;
+      padding: 0;
+      margin: auto;
+      display: block;
+      width: 99vw;
+      height: 98vh;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+    }
+  </style>
+  <script src="../../libs/three-r84/three.js"></script>
+  <script src="../../libs/three-r84/OrbitControls.js"></script>
+  <script src="../../libs/datgui/dat.gui.js"></script>
+
+  <script src="../boxes/functions.js"></script>
+  <script src="../boxes/boxes.js"></script>
+</head>
+<body>
+  <canvas id="glcanvas"></canvas>
+</body>
+</html>
